@@ -1,0 +1,7 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}Copyright (c) 2016 Martin Hart under the terms of the MIT licence.
+<#if licenseLast??>
+${licenseLast}
+</#if>
