@@ -6,13 +6,13 @@ package aqa;
 import aqa.parser.InputProvider;
 import aqa.parser.OutputWriter;
 import aqa.parser.Parser;
-import aqa.InterpreterException;
 import aqa.tokenizer.Token;
 import aqa.tokenizer.Tokenizer;
 import java.io.Reader;
 
 /**
- *
+ * This is the main public facing class used to run the interpreter.  As a client,
+ * you shouldn't need to use any other objects defined herein.
  * @author martinhart
  */
 public class Interpreter {
@@ -21,7 +21,8 @@ public class Interpreter {
     private final Parser parser;
 
     /**
-     *
+     * Create a new instance.  You need to call execute to actually run the
+     * interpreter.
      * @param reader the source file to execute
      * @param writer the object that writes the parser's OUTPUT and INSPECT data
      * @param inputProvider the object that provides USERINPUT
@@ -31,6 +32,10 @@ public class Interpreter {
         this.parser = new Parser(writer, inputProvider);
     }
 
+    /**
+     * Run the interpreter.
+     * @throws InterpreterException if there is an issue.
+     */
     public void execute() throws InterpreterException {
         tokenize();
         parse();
