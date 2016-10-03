@@ -130,12 +130,6 @@ public class VirtualMachineTest {
             getCalledWith = name;
             return null;
         }
-
-        @Override
-        public Iterator<Variable> iterator() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
     }
 
     private class SubroutinesStub implements Subroutines {

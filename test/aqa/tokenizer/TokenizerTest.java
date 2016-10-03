@@ -3,9 +3,8 @@
  */
 package aqa.tokenizer;
 
-import aqa.tokenizer.Tokenizer;
-import aqa.tokenizer.Tokens;
-import aqa.tokenizer.Token;
+import aqa.InterpreterException;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import org.junit.Test;
@@ -28,6 +27,13 @@ public class TokenizerTest {
         tokens = subject.tokenize();
         assertEquals(true, tokens.isEmpty());
     }
+    
+    @Test(expected=InterpreterException.class)
+    public void shouldThrowIfCannotRead() throws Exception {
+        reader = new BadReader();
+        subject = new Tokenizer(reader);
+        subject.tokenize();
+    }
 
     @Test
     public void testTokenizingASingleCharacter() throws Exception {
@@ -41,6 +47,13 @@ public class TokenizerTest {
         createSource("# wibble ()(@#");
         tokens = subject.tokenize();
         assertEquals(true, tokens.isEmpty());
+    }
+    
+    @Test
+    public void testTokenizingAfterComment() throws Exception {
+        createSource("# a\n34");
+        tokens = subject.tokenize();
+        assertEquals(false, tokens.isEmpty());
     }
 
     @Test
@@ -135,4 +148,17 @@ public class TokenizerTest {
         assertEquals(line, token.getLineNumber());
     }
 
+    private class BadReader extends Reader {
+
+        @Override
+        public int read(char[] cbuf, int off, int len) throws IOException {
+            throw new IOException("WOOO");
+        }
+
+        @Override
+        public void close() throws IOException {
+            throw new IOException("WOOO");
+        }
+        
+    }
 }
