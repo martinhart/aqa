@@ -35,6 +35,13 @@ public class TokenizerTest {
         tokens = subject.tokenize();
         assertEquals(false, tokens.isEmpty());
     }
+    
+    @Test
+    public void testTokenizingAComment() throws Exception {
+        createSource("# wibble ()(@#");
+        tokens = subject.tokenize();
+        assertEquals(true, tokens.isEmpty());
+    }
 
     @Test
     public void testSeparators() throws Exception {

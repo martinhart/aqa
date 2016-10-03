@@ -145,6 +145,7 @@ public class InterpreterTest {
 
     @Test
     public void lessThan() throws Exception {
+        parseAndCheck("9 < 8", "");
         parseAndCheck("OUTPUT (99 < 98)", "FALSE");
         parseAndCheck("OUTPUT (98 < 99)", "TRUE");
         parseAndCheck("OUTPUT (100.3 < 100.2)", "FALSE");
@@ -250,10 +251,20 @@ public class InterpreterTest {
     public void stringToInt() throws Exception {
         parseAndCheck("OUTPUT STRING_TO_INT('19')", "19");
     }
+    
+    @Test(expected=InterpreterException.class)
+    public void stringToIntWithInvalidData() throws Exception {
+        parseAndCheck("OUTPUT STRING_TO_INT('1abacus9')", "NOTUSED");
+    }
 
     @Test
     public void stringToReal() throws Exception {
         parseAndCheck("OUTPUT STRING_TO_REAL('19.2')", "19.2");
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void stringToRealWithInvalidData() throws Exception {
+        parseAndCheck("OUTPUT STRING_TO_REAL('hek')", "NOTUSED");
     }
 
     @Test
@@ -275,6 +286,11 @@ public class InterpreterTest {
     public void codeToChar() throws Exception {
         parseAndCheck("OUTPUT CODE_TO_CHAR(97)", "a");
     }
+    
+    @Test
+    public void randomInt() throws Exception {
+        parseAndCheck("OUTPUT RANDOM_INT(1, 1)", "1");
+    }
 
     @Test
     public void arrayIndexing() throws Exception {
@@ -284,7 +300,22 @@ public class InterpreterTest {
         parse();
         check("2");
     }
-
+    
+    @Test(expected=InterpreterException.class)
+    public void arrayIndexingUsingNonIntegerIndex() throws Exception {
+        push("a <- 'hello'");
+        push("b <- [1]");
+        push("c <- b[a]");
+        parse();
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void arrayIndexingANonArray() throws Exception {
+        push("a <- 1");
+        push("OUTPUT a[0]");
+        parse();
+    }
+    
     @Test
     public void arrayElementAssignment() throws Exception {
         push("a <- [1, 2, 3, 4]");
@@ -302,7 +333,17 @@ public class InterpreterTest {
         parse();
         check("22");
     }
-
+    
+    @Test
+    public void arrayLength() throws Exception {
+        parseAndCheck("OUTPUT LEN([1, 2])", "2");
+    }
+    
+    @Test
+    public void inspectString() throws Exception {
+        parseAndCheck("INSPECT 'h'", "'h'");
+    }
+    
     @Test
     public void ifWhenTrue() throws Exception {
         push("a <- (1 < 2)");
@@ -533,6 +574,11 @@ public class InterpreterTest {
         push("OUTPUT ary[0][0]");
         parse();
         check("1");
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void lengthOnSomethingThatDoesNotHaveALength() throws Exception {
+        parseAndCheck("LEN(23)", "NOTUSED");
     }
 
     private void push(String code) {

@@ -41,6 +41,13 @@ public class ArrayValueTest {
     }
     
     @Test
+    public void testInspect() throws InterpreterException {
+        subject.setAtIndex(0, new IntegerValue(1));
+        subject.setAtIndex(1, new StringValue("hi"));
+        assertEquals("[1, 'hi']", subject.inspect());
+    }
+    
+    @Test
     public void setAndGetAtIndex() throws InterpreterException {
         IntegerValue i1 = new IntegerValue(1), i2 = new IntegerValue(2);
         subject.setAtIndex(0, i1);
@@ -48,6 +55,12 @@ public class ArrayValueTest {
         assertEquals(10, subject.length().value);
         assertEquals(1, ((IntegerValue)subject.getAtIndex(0)).value);
         assertEquals(2, ((IntegerValue)subject.getAtIndex(9)).value);
+        assertEquals(NullValue.instance, subject.getAtIndex(1));
+    }
+    
+    @Test
+    public void getAtIndex() throws InterpreterException {
+        assertEquals(NullValue.instance, subject.getAtIndex(0));
         assertEquals(NullValue.instance, subject.getAtIndex(1));
     }
         

@@ -3,10 +3,10 @@
  */
 package aqa.value;
 
-import aqa.value.IntegerValue;
-import aqa.value.Value;
+import aqa.InterpreterException;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
 
 /**
  *
@@ -15,6 +15,11 @@ import static org.junit.Assert.*;
 public class IntegerValueTest {
     
     private IntegerValue subject;
+    
+    @Before
+    public void setup() {
+        subject = new IntegerValue(0);
+    }
     
     @Test
     public void testInspect() {
@@ -52,6 +57,11 @@ public class IntegerValueTest {
         assertEquals(-1, subject.compare(o));
     }
     
+    @Test(expected=InterpreterException.class)
+    public void testCompareWithNonInteger() throws Exception {
+        subject.compare(new StringValue("woo"));
+    }
+    
     @Test
     public void testEqualWhenEqual() throws Exception {
         Value other = new IntegerValue(1);
@@ -66,4 +76,43 @@ public class IntegerValueTest {
         assertEquals(false, subject.equal(other));
     }
     
+    @Test(expected=InterpreterException.class)
+    public void testEqualWithNonInteger() throws Exception {
+        subject.equal(new StringValue(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testAddWithNonInteger() throws Exception {
+        subject.add(new StringValue(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testSubtractWithNonInteger() throws Exception {
+        subject.subtract(new StringValue(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testMultiplyWithNonInteger() throws Exception {
+        subject.multiply(new StringValue(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testDivideWithNonInteger() throws Exception {
+        subject.divide(new StringValue(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testDivWithNonInteger() throws Exception {
+        subject.div(new StringValue(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testModWithNonInteger() throws Exception {
+        subject.mod(new StringValue(""));
+    }
+    
+    @Test
+    public void testToStr() throws Exception {
+        assertEquals(true, new StringValue("0").equal(subject.toStr()));
+    }
 }

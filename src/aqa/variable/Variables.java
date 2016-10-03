@@ -9,7 +9,7 @@ import aqa.InterpreterException;
  *
  * @author martinhart
  */
-public abstract class Variables implements Iterable<Variable> {
+public abstract class Variables {
     
     /**
      * Store variable in var table.

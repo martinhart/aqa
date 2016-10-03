@@ -5,7 +5,6 @@ package aqa.variable;
 
 import aqa.InterpreterException;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  *
@@ -36,10 +35,5 @@ public class VariablesImpl extends Variables {
             variables.put(name, v);
             return v;
         }
-    }
-
-    @Override
-    public Iterator<Variable> iterator() {
-        return variables.values().iterator();
     }
 }

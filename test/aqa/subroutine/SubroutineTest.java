@@ -45,4 +45,9 @@ public class SubroutineTest {
         subject.addParameter("help");
         assertEquals("help", subject.getParameter(0));
     }
+    
+    @Test(expected=InterpreterException.class)
+    public void gettingAnInvalidParameterIndex() throws Exception {
+        subject.getParameter(293);
+    }
 }

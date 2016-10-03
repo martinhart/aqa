@@ -6,6 +6,7 @@ package aqa.value;
 import aqa.InterpreterException;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
 
 /**
  *
@@ -13,108 +14,90 @@ import static org.junit.Assert.*;
  */
 public class ValueBaseTest {
     
-    private Value subject;
+    private ValueBase subject;
     
-    private class StubValue extends ValueBase {
-        
-        StubValue() {
-            super("stub");
-        }
-
-        @Override
-        public String inspect() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public String output() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public int compare(Value other) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public boolean equal(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Value add(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Value subtract(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Value multiply(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Value divide(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Value div(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Value mod(Value other) throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public IntegerValue length() throws InterpreterException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Object getValue() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }      
-    }
-        
-    
-    interface V {
-        public boolean goForIt();
+    @Before
+    public void setup() {
+        subject = new ValueBase("test");
     }
     
-    class VBase implements V {
-        @Override
-        public boolean goForIt() {
-            return true;
-        }
+    @Test(expected=InterpreterException.class)
+    public void testBugout() throws InterpreterException {
+        subject.bugout("hmm");
     }
     
-    class VImpl extends VBase {
-        @Override
-        public boolean goForIt() {
-            return false;
-        }
+    @Test(expected=InterpreterException.class)
+    public void testOutput() throws InterpreterException {
+        subject.output();
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testCompare() throws InterpreterException {
+        subject.compare(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testEqual() throws InterpreterException {
+        subject.equal(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testAdd() throws InterpreterException {
+        subject.add(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testSubtract() throws InterpreterException {
+        subject.subtract(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testMultiply() throws InterpreterException {
+        subject.multiply(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testDivide() throws InterpreterException {
+        subject.divide(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testDiv() throws InterpreterException {
+        subject.div(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testMod() throws InterpreterException {
+        subject.mod(new ValueBase("other"));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testLength() throws InterpreterException {
+        subject.length();
     }
     
     @Test
-    public void testIt() {
-        V iface;
-        VBase base;
-        VImpl impl;
-        
-        impl = new VImpl();
-        assertEquals(false, impl.goForIt());
-        
-        base = (VBase) impl;
-        assertEquals(false, base.goForIt());
-        
-        iface = base;
-        assertEquals(false, iface.goForIt());
+    public void testGetValue() {
+        assertNull(subject.getValue());
     }
     
+    @Test(expected=InterpreterException.class)
+    public void testToStr() throws InterpreterException {
+        subject.toStr();
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testSetAtIndex() throws InterpreterException {
+        subject.setAtIndex(0, new ValueBase(""));
+    }
+    
+    @Test(expected=InterpreterException.class)
+    public void testGetAtIndex() throws InterpreterException {
+        subject.getAtIndex(0);
+    }
+    
+    @Test
+    public void testMakeCopy() throws InterpreterException {
+        assertEquals(subject, subject.makeCopy());
+    }
 }
