@@ -4,12 +4,14 @@
 package aqa;
 
 /**
- *
+ * This exception type is thrown if there are any problems executing the
+ * given pseudocode.  Problems might come from tokenising, parsing and/or
+ * interpreting the actual statements.
  * @author martinhart
  */
 public class InterpreterException extends Exception {
     
-    private int line;
+    private final int line;
 
     public InterpreterException(String message) {
         super(message);
@@ -17,7 +19,7 @@ public class InterpreterException extends Exception {
     }
     
     public InterpreterException(int line, String message) {
-        this("line " + line + ": " + message);
+        super("line " + line + ": " + message);
         this.line = line;
     }
     

@@ -3,7 +3,6 @@
  */
 package aqa.ui;
 
-import aqa.ui.AboutDialog;
 import aqa.Interpreter;
 import aqa.InterpreterException;
 import java.awt.FileDialog;

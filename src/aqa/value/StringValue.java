@@ -4,9 +4,6 @@
 package aqa.value;
 
 import aqa.InterpreterException;
-import aqa.value.IntegerValue;
-import aqa.value.ValueBase;
-import aqa.value.Value;
 
 /**
  *

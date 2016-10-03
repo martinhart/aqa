@@ -4,9 +4,17 @@
 package aqa.parser;
 
 /**
- * This interface is triggered by the Interpreter when stuff should be outputted.
+ * This interface is triggered by the Interpreter when stuff should be
+ * outputted.
+ *
  * @author martinhart
  */
 public interface OutputWriter {
+
+    /**
+     * Implement this method to send some output to the display.
+     *
+     * @param message information to be outputted.
+     */
     public void output(String message);
 }

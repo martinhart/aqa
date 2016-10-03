@@ -8,5 +8,11 @@ package aqa.parser;
  * @author martinhart
  */
 public interface InputProvider {
-   String getInput(); 
+
+    /**
+     * Provide some user input to the interpreter by overriding this method.
+     *
+     * @return user's input.
+     */
+    String getInput();
 }

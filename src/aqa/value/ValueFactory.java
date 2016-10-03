@@ -4,7 +4,6 @@
 package aqa.value;
 
 import aqa.tokenizer.Token;
-import aqa.value.Value;
 
 /**
  *

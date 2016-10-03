@@ -3,8 +3,6 @@
  */
 package aqa.value;
 
-import aqa.value.ValueBase;
-
 /**
  *
  * @author martinhart

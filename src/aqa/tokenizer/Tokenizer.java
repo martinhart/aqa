@@ -4,8 +4,6 @@
 package aqa.tokenizer;
 
 import aqa.InterpreterException;
-import aqa.tokenizer.Tokens;
-import aqa.tokenizer.Token;
 import java.io.IOException;
 import java.io.Reader;
 
