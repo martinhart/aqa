@@ -96,15 +96,17 @@ class BlockingInputProvider implements InputProvider {
  */
 public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
 
+    private final MainWindow mainWindow;
     private final CodeEditorPanel editorPanel;
     private final OutputPanel outputPanel;
     private final VariableTablePanel variableTablePanel;
     private final InstructionListener instructionListener;
     private final String codeToExecute;
     
-    public InterpreterWorker(CodeEditorPanel editorPanel, 
+    public InterpreterWorker(MainWindow mainWindow, CodeEditorPanel editorPanel, 
             OutputPanel outputPanel, VariableTablePanel variableTablePanel,
             InstructionListener instructionListener) {
+        this.mainWindow = mainWindow;
         this.editorPanel = editorPanel;
         this.outputPanel = outputPanel;
         this.variableTablePanel = variableTablePanel;
@@ -113,9 +115,9 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
         
     }
 
-    public InterpreterWorker(CodeEditorPanel editorPanel, 
+    public InterpreterWorker(MainWindow mainWindow, CodeEditorPanel editorPanel, 
             OutputPanel outputPanel, VariableTablePanel variableTablePanel) {
-        this(editorPanel, outputPanel, variableTablePanel, 
+        this(mainWindow, editorPanel, outputPanel, variableTablePanel, 
                 new InstructionListener());
     }
 
@@ -166,6 +168,7 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
         } catch (Exception e) {
             outputPanel.output("fatal: " + e.getLocalizedMessage());
         }
+        mainWindow.enableAllMenus();
     }
     
     public void publishLine(int line) {

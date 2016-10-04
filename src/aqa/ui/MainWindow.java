@@ -42,7 +42,11 @@ public class MainWindow extends JFrame {
     private String fileName;
     private boolean isDirty;
     private final StepLock stepLock;
-
+    private JMenu fileMenu;
+    private JMenu interpreterMenu;
+    private JMenuItem runMenuItem;
+    private JMenuItem debugMenuItem;
+    
     public MainWindow() {
         fileName = "";
         isDirty = false;
@@ -87,6 +91,13 @@ public class MainWindow extends JFrame {
             }
         });
     }
+    
+    public void enableAllMenus() {
+        fileMenu.setEnabled(true);
+        interpreterMenu.setEnabled(true);
+        runMenuItem.setEnabled(true);
+        debugMenuItem.setEnabled(true);
+    }
 
     private void createMenu() {
         menuBar = new JMenuBar();
@@ -97,8 +108,8 @@ public class MainWindow extends JFrame {
     }
 
     private void createFileMenu() {
-        JMenu menu = new JMenu("File");
-        menu.setMnemonic('F');
+        fileMenu = new JMenu("File");
+        fileMenu.setMnemonic('F');
 
         JMenuItem menuItem = new JMenuItem("New", KeyEvent.VK_N);
         menuItem.addActionListener((ActionEvent e) -> {
@@ -106,7 +117,7 @@ public class MainWindow extends JFrame {
         });
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         menuItem.setMnemonic('N');
-        menu.add(menuItem);
+        fileMenu.add(menuItem);
 
         menuItem = new JMenuItem("Open...", KeyEvent.VK_O);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -114,7 +125,7 @@ public class MainWindow extends JFrame {
         menuItem.addActionListener((ActionEvent e) -> {
             onOpen();
         });
-        menu.add(menuItem);
+        fileMenu.add(menuItem);
 
         menuItem = new JMenuItem("Save");
         menuItem.setMnemonic('S');
@@ -122,44 +133,44 @@ public class MainWindow extends JFrame {
         menuItem.addActionListener((ActionEvent e) -> {
             onSave();
         });
-        menu.add(menuItem);
+        fileMenu.add(menuItem);
 
         menuItem = new JMenuItem("Save as...");
         menuItem.addActionListener((ActionEvent e) -> {
             onSaveAs();
         });
-        menu.add(menuItem);
+        fileMenu.add(menuItem);
 
-        menuBar.add(menu);
+        menuBar.add(fileMenu);
     }
 
     private void createInterpreterMenu() {
-        JMenu menu = new JMenu("Interpreter");
-        menu.setMnemonic('I');
+        interpreterMenu = new JMenu("Interpreter");
+        interpreterMenu.setMnemonic('I');
 
-        JMenuItem menuItem = new JMenuItem("Run");
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-        menuItem.setMnemonic('R');
-        menuItem.addActionListener((ActionEvent e) -> {
+        runMenuItem = new JMenuItem("Run");
+        runMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        runMenuItem.setMnemonic('R');
+        runMenuItem.addActionListener((ActionEvent e) -> {
             onInterpret();
         });
-        menu.add(menuItem);
+        interpreterMenu.add(runMenuItem);
 
-        menuItem = new JMenuItem("Debug");
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-        menuItem.addActionListener((ActionEvent e) -> {
+        debugMenuItem = new JMenuItem("Debug");
+        debugMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        debugMenuItem.addActionListener((ActionEvent e) -> {
             onDebug();
         });
-        menu.add(menuItem);
+        interpreterMenu.add(debugMenuItem);
 
-        menuItem = new JMenuItem("next Instruction");
+        JMenuItem menuItem = new JMenuItem("Step through");
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         menuItem.addActionListener((ActionEvent e) -> {
             onStep();
         });
-        menu.add(menuItem);
+        interpreterMenu.add(menuItem);
 
-        menuBar.add(menu);
+        menuBar.add(interpreterMenu);
     }
 
     private void createHelpMenu() {
@@ -243,19 +254,24 @@ public class MainWindow extends JFrame {
     }
 
     private void onInterpret() {
+        fileMenu.setEnabled(false);
+        interpreterMenu.setEnabled(false);
         outputPanel.clear();
         editorPanel.clearHighlights();
 
-        InterpreterWorker worker = new InterpreterWorker(editorPanel, 
+        InterpreterWorker worker = new InterpreterWorker(this, editorPanel, 
                 outputPanel, variableTablePanel);
         worker.execute();
     }
 
     private void onDebug() {
+        fileMenu.setEnabled(false);
+        runMenuItem.setEnabled(false);
+        debugMenuItem.setEnabled(false);
         outputPanel.clear();
         editorPanel.clearHighlights();
         StepInstructionListener instructionListener = new StepInstructionListener(stepLock);
-        InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel, 
+        InterpreterWorker worker = new InterpreterWorker(this, editorPanel, outputPanel, 
                 variableTablePanel, instructionListener);
         instructionListener.executeWorker(worker);
     }
