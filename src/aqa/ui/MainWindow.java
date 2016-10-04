@@ -3,8 +3,6 @@
  */
 package aqa.ui;
 
-import aqa.Interpreter;
-import aqa.InterpreterException;
 import java.awt.FileDialog;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -16,7 +14,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.Scanner;
@@ -214,17 +211,11 @@ public class MainWindow extends JFrame {
     }
 
     private void onInterpret() {
-        try {
-            outputPanel.clear();
-            editorPanel.clearHighlights();
-            new Interpreter(new StringReader(editorPanel.getContent()), outputPanel, new AWTInputProvider()).execute();
-            editorPanel.clearHighlights();
-        } catch (InterpreterException e) {
-            outputPanel.output("ERROR! " + e.getMessage());
-            editorPanel.highlightLine(e.getLine());
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.toString(), "Error ", JOptionPane.ERROR_MESSAGE);
-        }
+        outputPanel.clear();
+        editorPanel.clearHighlights();
+        
+        InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel);
+        worker.execute();
     }
 
     private boolean itIsOkToReplaceEditorBuffer() {
