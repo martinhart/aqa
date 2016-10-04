@@ -39,7 +39,7 @@ public class ParserTest {
         public final List<Integer> lines = new ArrayList<>();
         
         @Override
-        public void newInstruction(int line) {
+        public void newInstruction(int line, VirtualMachine vm) {
             lines.add(line);
         }
     }

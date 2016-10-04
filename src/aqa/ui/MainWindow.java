@@ -38,6 +38,7 @@ public class MainWindow extends JFrame {
     private JMenuBar menuBar;
     private CodeEditorPanel editorPanel;
     private OutputPanel outputPanel;
+    private VariableTablePanel variableTablePanel;
     private String fileName;
     private boolean isDirty;
     private final StepLock stepLock;
@@ -49,19 +50,28 @@ public class MainWindow extends JFrame {
     }
 
     public void create() {
-        JPanel panel = new JPanel();
 
         createMenu();
         createEditorPanel();
         createOutputPanel();
+        createVariableTablePanel();
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setTitle("AQA Pseudocode Interpreter");
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        JSplitPane sp = new JSplitPane(JSplitPane.VERTICAL_SPLIT, editorPanel, outputPanel);
-        sp.setResizeWeight(0.8);
-        panel.add(sp);
-        getContentPane().add(panel);
+        
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        JSplitPane leftSplitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT, editorPanel, outputPanel);
+        leftSplitter.setResizeWeight(0.8);
+        leftPanel.add(leftSplitter);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
+        JSplitPane rightSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, variableTablePanel);
+        rightSplitter.setResizeWeight(1);
+        mainPanel.add(rightSplitter);
+        
+        getContentPane().add(mainPanel);
         pack();
         this.setSize(1024, 768);
         setLocationRelativeTo(null);
@@ -199,6 +209,11 @@ public class MainWindow extends JFrame {
         outputPanel = new OutputPanel();
         outputPanel.create();
     }
+    
+    private void createVariableTablePanel() {
+        variableTablePanel = new VariableTablePanel();
+        variableTablePanel.create();
+    }
 
     private void onNew() {
         if (itIsOkToReplaceEditorBuffer()) {
@@ -231,7 +246,8 @@ public class MainWindow extends JFrame {
         outputPanel.clear();
         editorPanel.clearHighlights();
 
-        InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel);
+        InterpreterWorker worker = new InterpreterWorker(editorPanel, 
+                outputPanel, variableTablePanel);
         worker.execute();
     }
 
@@ -239,7 +255,8 @@ public class MainWindow extends JFrame {
         outputPanel.clear();
         editorPanel.clearHighlights();
         StepInstructionListener instructionListener = new StepInstructionListener(stepLock);
-        InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel, instructionListener);
+        InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel, 
+                variableTablePanel, instructionListener);
         instructionListener.executeWorker(worker);
     }
     

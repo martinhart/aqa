@@ -153,7 +153,7 @@ public class Parser {
     }
 
     private void instruction() throws InterpreterException {
-        instructionListener.newInstruction(tokenSequencer.getCurrentTokenLine());
+        instructionListener.newInstruction(tokenSequencer.getCurrentTokenLine(), vm);
         
         if (tokenSequencer.match("constant")) {
             assignment();

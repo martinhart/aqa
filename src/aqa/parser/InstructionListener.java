@@ -9,7 +9,7 @@ package aqa.parser;
  * @author martinhart
  */
 public class InstructionListener {
-    public void newInstruction(int lineNumber) {
+    public void newInstruction(int lineNumber, VirtualMachine vm) {
         // do nothing.
     }
 }

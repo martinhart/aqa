@@ -14,21 +14,21 @@ public class InstructionListenerTest {
     
     @Test
     public void testNewInstruction() {
-        new InstructionListener().newInstruction(10);
+        new InstructionListener().newInstruction(10, null);
     }
     
     @Test
     public void testOverrideOfNewInstruction() {
         InstructionListenerStub s = new InstructionListenerStub();
         InstructionListener base = s;
-        base.newInstruction(100);
+        base.newInstruction(100, null);
         assertEquals(100, s.lineNumber);
     }
     
     private class InstructionListenerStub extends InstructionListener {
         public int lineNumber;
         @Override
-        public void newInstruction(int line) {
+        public void newInstruction(int line, VirtualMachine vm) {
             lineNumber = line;
         }
     }

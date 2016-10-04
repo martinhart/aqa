@@ -4,7 +4,9 @@
 package aqa.variable;
 
 import aqa.InterpreterException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  *
@@ -35,5 +37,19 @@ public class VariablesImpl extends Variables {
             variables.put(name, v);
             return v;
         }
+    }
+
+    @Override
+    public int size() {
+        return variables.size();
+    }
+
+    @Override
+    public List<String> getNames() {
+        ArrayList<String> names = new ArrayList<>();
+        for (String name : variables.keySet()) {
+            names.add(name);
+        }
+        return names;
     }
 }

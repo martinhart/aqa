@@ -4,6 +4,7 @@
 package aqa.variable;
 
 import aqa.InterpreterException;
+import java.util.List;
 
 /**
  *
@@ -26,5 +27,15 @@ public abstract class Variables {
      * @param name
      * @return the Variable named name.
      */
-    public abstract Variable get(String name);    
+    public abstract Variable get(String name);   
+    
+    /**
+     * Return the number of variables in the set.
+     */
+    public abstract int size();
+    
+    /**
+     * Return the variable names
+     */
+    public abstract List<String> getNames();
 }

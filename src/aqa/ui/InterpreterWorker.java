@@ -8,6 +8,7 @@ import aqa.InterpreterException;
 import aqa.parser.InputProvider;
 import aqa.parser.InstructionListener;
 import aqa.parser.OutputWriter;
+import aqa.parser.VirtualMachine;
 import java.io.StringReader;
 import java.util.List;
 import javax.swing.SwingUtilities;
@@ -31,19 +32,31 @@ class UpdateInformation {
      */
     public final int line;
 
-    public UpdateInformation(int line, String message) {
+    /**
+     * If not null - this is sent to variables panel
+     */
+    public final VirtualMachine vm;
+    
+    public UpdateInformation(int line, String message, VirtualMachine vm) {
         this.line = line;
         this.message = message;
+        this.vm = vm;
+    }
+    
+    public UpdateInformation(int line, String message) {
+        this(line, message, null);
     }
 
     public UpdateInformation(String message) {
-        this.line = 0;
-        this.message = message;
+        this(0, message, null);
     }
     
     public UpdateInformation(int line) {
-        this.line = line;
-        this.message = null;
+        this(line, null, null);
+    }
+    
+    public UpdateInformation(VirtualMachine vm) {
+        this(0, null, vm);
     }
 }
 
@@ -85,20 +98,25 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
 
     private final CodeEditorPanel editorPanel;
     private final OutputPanel outputPanel;
+    private final VariableTablePanel variableTablePanel;
     private final InstructionListener instructionListener;
     private final String codeToExecute;
     
-    public InterpreterWorker(CodeEditorPanel editorPanel, OutputPanel outputPanel,
+    public InterpreterWorker(CodeEditorPanel editorPanel, 
+            OutputPanel outputPanel, VariableTablePanel variableTablePanel,
             InstructionListener instructionListener) {
         this.editorPanel = editorPanel;
         this.outputPanel = outputPanel;
+        this.variableTablePanel = variableTablePanel;
         this.instructionListener = instructionListener;
         this.codeToExecute = editorPanel.getContent();
         
     }
 
-    public InterpreterWorker(CodeEditorPanel editorPanel, OutputPanel outputPanel) {
-        this(editorPanel, outputPanel, new InstructionListener());
+    public InterpreterWorker(CodeEditorPanel editorPanel, 
+            OutputPanel outputPanel, VariableTablePanel variableTablePanel) {
+        this(editorPanel, outputPanel, variableTablePanel, 
+                new InstructionListener());
     }
 
     @Override
@@ -130,6 +148,9 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
             if (i.message != null) {
                 outputPanel.output(i.message);
             }
+            if (i.vm != null) {
+                variableTablePanel.displayVMState(i.vm);
+            }
         }
     }
 
@@ -139,6 +160,9 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
         try {
             status = get();
             outputPanel.output("completed with status " + status);
+            if (status == 0) {
+                editorPanel.clearHighlights();
+            }
         } catch (Exception e) {
             outputPanel.output("fatal: " + e.getLocalizedMessage());
         }
@@ -146,5 +170,9 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
     
     public void publishLine(int line) {
         publish(new UpdateInformation(line));
+    }
+    
+    public void publishVM(VirtualMachine vm) {
+        publish(new UpdateInformation(vm));
     }
 }

@@ -4,6 +4,7 @@
 package aqa.ui;
 
 import aqa.parser.InstructionListener;
+import aqa.parser.VirtualMachine;
 
 /**
  * This class is used to step through the parser.  It intercepts the parser's
@@ -21,10 +22,11 @@ public class StepInstructionListener extends InstructionListener {
     }
     
     @Override
-    public void newInstruction(int lineNumber) {
+    public void newInstruction(int lineNumber, VirtualMachine vm) {
         boolean canContinue = false;
         
         worker.publishLine(lineNumber);
+        worker.publishVM(vm);
         while (false == lock.canContinue()) {
             // do nothing until we can continue!
         }

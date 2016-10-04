@@ -14,6 +14,7 @@ import aqa.value.ValueStackImpl;
 import aqa.variable.Variable;
 import aqa.variable.Variables;
 import java.util.Iterator;
+import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -129,6 +130,16 @@ public class VirtualMachineTest {
         public Variable get(String name) {
             getCalledWith = name;
             return null;
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public List<String> getNames() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
 
