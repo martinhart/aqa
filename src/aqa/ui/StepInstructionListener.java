@@ -3,6 +3,7 @@
  */
 package aqa.ui;
 
+import aqa.InterpreterException;
 import aqa.parser.InstructionListener;
 import aqa.parser.VirtualMachine;
 
@@ -22,7 +23,7 @@ public class StepInstructionListener extends InstructionListener {
     }
     
     @Override
-    public void newInstruction(int lineNumber, VirtualMachine vm) {
+    public void newInstruction(int lineNumber, VirtualMachine vm) throws InterpreterException {
         boolean canContinue = false;
         
         worker.publishLine(lineNumber);

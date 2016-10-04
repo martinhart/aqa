@@ -46,6 +46,9 @@ public class MainWindow extends JFrame {
     private JMenu interpreterMenu;
     private JMenuItem runMenuItem;
     private JMenuItem debugMenuItem;
+    private JMenuItem stepMenuItem;
+    private JMenuItem stopMenuItem;
+    private InterpreterWorker worker;
     
     public MainWindow() {
         fileName = "";
@@ -97,6 +100,8 @@ public class MainWindow extends JFrame {
         interpreterMenu.setEnabled(true);
         runMenuItem.setEnabled(true);
         debugMenuItem.setEnabled(true);
+        stepMenuItem.setEnabled(false);
+        stopMenuItem.setEnabled(false);
     }
 
     private void createMenu() {
@@ -163,12 +168,20 @@ public class MainWindow extends JFrame {
         });
         interpreterMenu.add(debugMenuItem);
 
-        JMenuItem menuItem = new JMenuItem("Step through");
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-        menuItem.addActionListener((ActionEvent e) -> {
+        stepMenuItem = new JMenuItem("Step through");
+        stepMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        stepMenuItem.addActionListener((ActionEvent e) -> {
             onStep();
         });
-        interpreterMenu.add(menuItem);
+        stepMenuItem.setEnabled(false);
+        interpreterMenu.add(stepMenuItem);
+        
+        stopMenuItem = new JMenuItem("Stop Debugging");
+        stopMenuItem.addActionListener((ActionEvent e) -> {
+            onStopDebugging();
+        });
+        stopMenuItem.setEnabled(false);
+        interpreterMenu.add(stopMenuItem);
 
         menuBar.add(interpreterMenu);
     }
@@ -255,11 +268,14 @@ public class MainWindow extends JFrame {
 
     private void onInterpret() {
         fileMenu.setEnabled(false);
-        interpreterMenu.setEnabled(false);
+        runMenuItem.setEnabled(false);
+        debugMenuItem.setEnabled(false);
+        stepMenuItem.setEnabled(false);
+        stopMenuItem.setEnabled(true);
         outputPanel.clear();
         editorPanel.clearHighlights();
 
-        InterpreterWorker worker = new InterpreterWorker(this, editorPanel, 
+        worker = new InterpreterWorker(this, editorPanel, 
                 outputPanel, variableTablePanel);
         worker.execute();
     }
@@ -268,12 +284,20 @@ public class MainWindow extends JFrame {
         fileMenu.setEnabled(false);
         runMenuItem.setEnabled(false);
         debugMenuItem.setEnabled(false);
+        stepMenuItem.setEnabled(true);
+        stopMenuItem.setEnabled(true);
         outputPanel.clear();
         editorPanel.clearHighlights();
         StepInstructionListener instructionListener = new StepInstructionListener(stepLock);
-        InterpreterWorker worker = new InterpreterWorker(this, editorPanel, outputPanel, 
+        worker = new InterpreterWorker(this, editorPanel, outputPanel, 
                 variableTablePanel, instructionListener);
         instructionListener.executeWorker(worker);
+    }
+    
+    private void onStopDebugging() {
+        if (worker != null) {
+            worker.cancel(true);
+        }
     }
     
     private void onStep() {

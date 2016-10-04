@@ -3,6 +3,7 @@
  */
 package aqa.ui;
 
+import aqa.InterpreterException;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -24,16 +25,15 @@ public class StepLock {
      * This function returns true if the parser is allowed to continue
      * @return 
      */
-    public boolean canContinue() {
+    public boolean canContinue() throws InterpreterException {
         boolean result = false;
         try {
             semaphore.acquire(1);
             result = released;
             released = false;
         }
-        catch(Exception e) {
-            e.printStackTrace();
-            result = false;
+        catch(InterruptedException e) {
+            throw new InterpreterException("process interrupted");
         }
         finally {
             semaphore.release(1);

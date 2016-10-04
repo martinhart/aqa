@@ -11,6 +11,8 @@ import aqa.parser.OutputWriter;
 import aqa.parser.VirtualMachine;
 import java.io.StringReader;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
@@ -134,7 +136,7 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
                     new BlockingInputProvider(),
                     instructionListener
             ).execute();
-            return 0;
+            return 0;        
         } catch (InterpreterException e) {
             publish(new UpdateInformation(e.getLine(), "error: " + e.getLocalizedMessage()));
             return 2;
@@ -165,8 +167,15 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
             if (status == 0) {
                 editorPanel.clearHighlights();
             }
-        } catch (Exception e) {
-            outputPanel.output("fatal: " + e.getLocalizedMessage());
+        } catch (InterruptedException e) {
+            outputPanel.output("process interrupted");
+            editorPanel.clearHighlights();
+        } catch (CancellationException e) {
+            outputPanel.output("process cancelled");
+            editorPanel.clearHighlights();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            outputPanel.output("fatal error: " + e.getLocalizedMessage());
         }
         mainWindow.enableAllMenus();
     }

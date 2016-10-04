@@ -3,6 +3,7 @@
  */
 package aqa.parser;
 
+import aqa.InterpreterException;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -13,12 +14,12 @@ import static org.junit.Assert.*;
 public class InstructionListenerTest {
     
     @Test
-    public void testNewInstruction() {
+    public void testNewInstruction() throws InterpreterException {
         new InstructionListener().newInstruction(10, null);
     }
     
     @Test
-    public void testOverrideOfNewInstruction() {
+    public void testOverrideOfNewInstruction() throws InterpreterException {
         InstructionListenerStub s = new InstructionListenerStub();
         InstructionListener base = s;
         base.newInstruction(100, null);

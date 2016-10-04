@@ -3,13 +3,15 @@
  */
 package aqa.parser;
 
+import aqa.InterpreterException;
+
 /**
  * This class is used by the Parser to notify clients when a new instruction
  * is being processed.
  * @author martinhart
  */
 public class InstructionListener {
-    public void newInstruction(int lineNumber, VirtualMachine vm) {
+    public void newInstruction(int lineNumber, VirtualMachine vm) throws InterpreterException {
         // do nothing.
     }
 }
