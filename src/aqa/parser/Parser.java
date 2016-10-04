@@ -52,7 +52,12 @@ public class Parser {
      */
     public void parse() throws InterpreterException {
         tokenSequencer = new TokenSequencer(tokens);
-        outerBlock();
+        try {
+            outerBlock();
+        }
+        catch(InterpreterException e) {
+            throw new InterpreterException(tokenSequencer.getCurrentTokenLine(), e.getLocalizedMessage());
+        }
     }
 
     /**
