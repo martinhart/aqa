@@ -26,15 +26,26 @@ public class Parser {
 
     private final OutputWriter outputWriter;
     private final InputProvider inputProvider;
+    private final InstructionListener instructionListener;
     Tokens tokens;
     private TokenSequencer tokenSequencer;
     private VirtualMachine vm;
 
-    public Parser(OutputWriter outputWriter, InputProvider inputProvider) {
+    public Parser(OutputWriter outputWriter, InputProvider inputProvider,
+            InstructionListener instructionListener) {
         this.outputWriter = outputWriter;
         this.inputProvider = inputProvider;
+        this.instructionListener = instructionListener;
         this.tokens = new Tokens();  
         vm = new VirtualMachine();
+    }
+    
+    public Parser(OutputWriter outputWriter, InputProvider inputProvider) {
+        this(outputWriter, inputProvider, new InstructionListener());
+    }
+    
+    public Parser(InstructionListener instructionListener) {
+        this(new NullOutputWriter(), new NullInputProvider(), instructionListener);
     }
 
     public Parser() {
@@ -142,6 +153,8 @@ public class Parser {
     }
 
     private void instruction() throws InterpreterException {
+        instructionListener.newInstruction(tokenSequencer.getCurrentTokenLine());
+        
         if (tokenSequencer.match("constant")) {
             assignment();
         } else {

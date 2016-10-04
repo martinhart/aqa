@@ -4,6 +4,7 @@
 package aqa;
 
 import aqa.parser.InputProvider;
+import aqa.parser.InstructionListener;
 import aqa.parser.OutputWriter;
 import aqa.parser.Parser;
 import aqa.tokenizer.Token;
@@ -26,10 +27,16 @@ public class Interpreter {
      * @param reader the source file to execute
      * @param writer the object that writes the parser's OUTPUT and INSPECT data
      * @param inputProvider the object that provides USERINPUT
+     * @param instructionListener the object that listens to progress.
      */
-    public Interpreter(Reader reader, OutputWriter writer, InputProvider inputProvider) {
+    public Interpreter(Reader reader, OutputWriter writer, InputProvider inputProvider,
+            InstructionListener instructionListener) {
         this.tokenizer = new Tokenizer(reader);
-        this.parser = new Parser(writer, inputProvider);
+        this.parser = new Parser(writer, inputProvider, instructionListener);
+    }
+    
+    public Interpreter(Reader reader, OutputWriter writer, InputProvider inputProvider) {
+        this(reader, writer, inputProvider, new InstructionListener());
     }
 
     /**

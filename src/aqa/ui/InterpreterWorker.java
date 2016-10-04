@@ -6,6 +6,7 @@ package aqa.ui;
 import aqa.Interpreter;
 import aqa.InterpreterException;
 import aqa.parser.InputProvider;
+import aqa.parser.InstructionListener;
 import aqa.parser.OutputWriter;
 import java.io.StringReader;
 import java.util.List;
@@ -23,12 +24,12 @@ class UpdateInformation {
     /**
      * If not null - this is sent to the OUTPUT panel
      */
-    public String message;
+    public final String message;
 
     /**
      * If >0 this is used to highlight a line on the EDITOR panel
      */
-    public int line;
+    public final int line;
 
     public UpdateInformation(int line, String message) {
         this.line = line;
@@ -38,6 +39,11 @@ class UpdateInformation {
     public UpdateInformation(String message) {
         this.line = 0;
         this.message = message;
+    }
+    
+    public UpdateInformation(int line) {
+        this.line = line;
+        this.message = null;
     }
 }
 
@@ -79,12 +85,20 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
 
     private final CodeEditorPanel editorPanel;
     private final OutputPanel outputPanel;
+    private final InstructionListener instructionListener;
     private final String codeToExecute;
-
-    public InterpreterWorker(CodeEditorPanel editorPanel, OutputPanel outputPanel) {
+    
+    public InterpreterWorker(CodeEditorPanel editorPanel, OutputPanel outputPanel,
+            InstructionListener instructionListener) {
         this.editorPanel = editorPanel;
         this.outputPanel = outputPanel;
+        this.instructionListener = instructionListener;
         this.codeToExecute = editorPanel.getContent();
+        
+    }
+
+    public InterpreterWorker(CodeEditorPanel editorPanel, OutputPanel outputPanel) {
+        this(editorPanel, outputPanel, new InstructionListener());
     }
 
     @Override
@@ -97,7 +111,8 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
                 }
 
             },
-                    new BlockingInputProvider()
+                    new BlockingInputProvider(),
+                    instructionListener
             ).execute();
             return 0;
         } catch (InterpreterException e) {
@@ -112,7 +127,9 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
             if (i.line > 0) {
                 editorPanel.highlightLine(i.line);
             }
-            outputPanel.output(i.message);
+            if (i.message != null) {
+                outputPanel.output(i.message);
+            }
         }
     }
 
@@ -125,5 +142,9 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
         } catch (Exception e) {
             outputPanel.output("fatal: " + e.getLocalizedMessage());
         }
+    }
+    
+    public void publishLine(int line) {
+        publish(new UpdateInformation(line));
     }
 }

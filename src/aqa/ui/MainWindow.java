@@ -40,10 +40,12 @@ public class MainWindow extends JFrame {
     private OutputPanel outputPanel;
     private String fileName;
     private boolean isDirty;
+    private final StepLock stepLock;
 
     public MainWindow() {
         fileName = "";
         isDirty = false;
+        stepLock = new StepLock();
     }
 
     public void create() {
@@ -132,6 +134,21 @@ public class MainWindow extends JFrame {
             onInterpret();
         });
         menu.add(menuItem);
+
+        menuItem = new JMenuItem("Debug");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        menuItem.addActionListener((ActionEvent e) -> {
+            onDebug();
+        });
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem("next Instruction");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        menuItem.addActionListener((ActionEvent e) -> {
+            onStep();
+        });
+        menu.add(menuItem);
+
         menuBar.add(menu);
     }
 
@@ -213,9 +230,21 @@ public class MainWindow extends JFrame {
     private void onInterpret() {
         outputPanel.clear();
         editorPanel.clearHighlights();
-        
+
         InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel);
         worker.execute();
+    }
+
+    private void onDebug() {
+        outputPanel.clear();
+        editorPanel.clearHighlights();
+        StepInstructionListener instructionListener = new StepInstructionListener(stepLock);
+        InterpreterWorker worker = new InterpreterWorker(editorPanel, outputPanel, instructionListener);
+        instructionListener.executeWorker(worker);
+    }
+    
+    private void onStep() {
+        stepLock.allowContinue();
     }
 
     private boolean itIsOkToReplaceEditorBuffer() {
