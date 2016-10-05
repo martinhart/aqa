@@ -1,0 +1,27 @@
+# Example implementation of bubble sort algorithm.
+# Martin Hart 2016
+
+SUBROUTINE bubbleSort(ary)
+	REPEAT
+		swapped <- FALSE
+		FOR i <- 1 TO LEN(ary)-1
+			IF (ary[i-1] > ary[i]) THEN
+				tmp <- ary[i]
+				ary[i] <- ary[i-1]
+				ary[i-1] <- tmp
+				swapped <- TRUE
+			ENDIF
+		ENDFOR
+	UNTIL (swapped = FALSE)
+	RETURN ary
+ENDSUBROUTINE
+
+# Build an array with some values to sort.
+ary <- [93, 254, 1, 13, 12]
+FOR i <- 0 TO 20
+	ary[LEN(ary)] <- RANDOM_INT(0, 100)
+ENDFOR
+
+INSPECT ary
+INSPECT bubbleSort(ary)
+
