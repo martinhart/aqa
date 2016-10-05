@@ -490,6 +490,17 @@ public class InterpreterTest {
         parse();
         check("3");
     }
+    
+    @Test
+    public void forLoopWhereSecondConditionLessThanFirst() throws Exception {
+        push("a <- TRUE");
+        push("FOR i <- 0 TO -1");
+        push("a <- FALSE");
+        push("ENDFOR");
+        push("OUTPUT a");
+        parse();
+        check("TRUE");
+    }
 
     @Test
     public void nestedIf() throws Exception {
