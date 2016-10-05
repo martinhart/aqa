@@ -23,6 +23,9 @@ import java.util.Random;
  * @author martinhart
  */
 public class Parser {
+    
+    private class ReturnException extends Exception {        
+    }
 
     private final OutputWriter outputWriter;
     private final InputProvider inputProvider;
@@ -113,7 +116,7 @@ public class Parser {
         vm.addSubroutine(s);
     }
     
-    private void subroutineCall() throws InterpreterException {
+    private void subroutineCall() throws InterpreterException, ReturnException  {
         Subroutine s = vm.getSubroutine(tokenSequencer.getCurrentTokenName());
         VirtualMachine currentVM = vm;
         TokenSequencer currentTokenSequencer = tokenSequencer;
@@ -147,12 +150,16 @@ public class Parser {
     }
 
     private void block() throws InterpreterException {
-        while (tokenSequencer.thereIsAToken()) {
-            instruction();
+        try {
+            while (tokenSequencer.thereIsAToken()) {
+                instruction();
+            }
+        } catch(ReturnException e) {
+            // ignore
         }
     }
 
-    private void instruction() throws InterpreterException {
+    private void instruction() throws InterpreterException, ReturnException {
         instructionListener.newInstruction(tokenSequencer.getCurrentTokenLine(), vm);
         
         if (tokenSequencer.match("constant")) {
@@ -183,35 +190,35 @@ public class Parser {
         }
     }
 
-    private void assignment() throws InterpreterException {
+    private void assignment() throws InterpreterException, ReturnException {
         try {
             Variable var = constantLValue();
             if (tokenSequencer.match("[")) { // 'ary[0] <-' or 'ary[0][1] <-'
                 tokenSequencer.expect("[");
-                booleanExpression();
+                expression();
                 int arrayIndex = vm.getValueStack().popInteger();
                 tokenSequencer.expect("]");
                 if (tokenSequencer.match("[")) { // ary[0][1] <- 
                     tokenSequencer.expect("[");
-                    booleanExpression();
+                    expression();
                     int childIndex = vm.getValueStack().popInteger();
                     tokenSequencer.expect("]");
                     tokenSequencer.expect("<");
                     tokenSequencer.expect("-");
-                    statement();
+                    booleanExpression();
                     ArrayValue parentArray = (ArrayValue) var.getValue();
                     ArrayValue childArray = (ArrayValue) parentArray.getAtIndex(arrayIndex);
                     childArray.setAtIndex(childIndex, vm.popValue());
                 } else {
                     tokenSequencer.expect("<");
                     tokenSequencer.expect("-");
-                    statement();
+                    booleanExpression();
                     ((ArrayValue) var.getValue()).setAtIndex(arrayIndex, vm.popValue());
                 }
             } else {
                 tokenSequencer.expect("<");
                 tokenSequencer.expect("-");
-                statement();
+                booleanExpression();
                 var.setValue(vm.popValue());
             }
         } catch (ClassCastException e) {
@@ -239,8 +246,13 @@ public class Parser {
         return v;
     }
 
-    private void statement() throws InterpreterException {
-        if (tokenSequencer.match("OUTPUT")) {
+    private void statement() throws InterpreterException, ReturnException {
+        if (tokenSequencer.match("RETURN")) {
+            tokenSequencer.advance();
+            booleanExpression();
+            throw new ReturnException();
+        }
+        else if (tokenSequencer.match("OUTPUT")) {
             output();
         } else if (tokenSequencer.match("INSPECT")) {
             inspect();
@@ -257,19 +269,19 @@ public class Parser {
         }
     }
 
-    private void output() throws InterpreterException {
+    private void output() throws InterpreterException, ReturnException {
         tokenSequencer.expect("OUTPUT");
-        statement();
+        booleanExpression();
         outputWriter.output(vm.popValue().output());
     }
 
-    private void inspect() throws InterpreterException {
+    private void inspect() throws InterpreterException, ReturnException  {
         tokenSequencer.expect("INSPECT");
-        statement();
+        booleanExpression();
         outputWriter.output(vm.popValue().inspect());
     }
 
-    private void ifStatement() throws InterpreterException {
+    private void ifStatement() throws InterpreterException, ReturnException  {
         if (ifStatementCondition()) {
             ifStatementBlock();
         } else {
@@ -289,7 +301,7 @@ public class Parser {
         tokenSequencer.expect("ENDIF");
     }
 
-    private void elseIfStatement() throws InterpreterException {
+    private void elseIfStatement() throws InterpreterException, ReturnException  {
         if (ifStatementCondition()) {
             ifStatementBlock();
         }
@@ -301,7 +313,7 @@ public class Parser {
      * @return <cond> == true
      * @throws InterpreterException
      */
-    private boolean ifStatementCondition() throws InterpreterException {
+    private boolean ifStatementCondition() throws InterpreterException, ReturnException  {
         tokenSequencer.expect("IF");
         booleanExpression();
         tokenSequencer.expect("THEN");
@@ -314,7 +326,7 @@ public class Parser {
      *
      * @throws InterpreterException
      */
-    private void ifStatementBlock() throws InterpreterException {
+    private void ifStatementBlock() throws InterpreterException, ReturnException  {
         boolean haveSeenElse = false;
         while (!tokenSequencer.match("ENDIF") && tokenSequencer.thereIsAToken()) {
             if (tokenSequencer.match("ELSE")) {
@@ -328,7 +340,7 @@ public class Parser {
         }
     }
 
-    private void whileStatement() throws InterpreterException {
+    private void whileStatement() throws InterpreterException, ReturnException  {
         int indexOfCondition, indexOfEndWhile = 0;
 
         tokenSequencer.expect("WHILE");
@@ -353,7 +365,7 @@ public class Parser {
         tokenSequencer.expect("ENDWHILE");
     }
 
-    private void repeatStatement() throws InterpreterException {
+    private void repeatStatement() throws InterpreterException, ReturnException  {
         int nextStatement = -1, firstStatement = -1;
 
         tokenSequencer.expect("REPEAT");
@@ -374,7 +386,7 @@ public class Parser {
      * FOR i <- 0 TO 3 statements ENDFOR @throws InterpreterException
      *
      */
-    private void forStatement() throws InterpreterException {
+    private void forStatement() throws InterpreterException, ReturnException  {
         int i, endValue, startIndex, endIndex = -1;
         String variableName;
         Variable loopCounter;
@@ -385,10 +397,10 @@ public class Parser {
         loopCounter = vm.getVariable(variableName);
 
         tokenSequencer.expect("TO");
-        booleanExpression();
+        expression();
         endValue = vm.getValueStack().popInteger();
         startIndex = tokenSequencer.getCurrentIndex();
-
+        
         if ((int) loopCounter.getValue().getValue() <= endValue) {
             while ((int) loopCounter.getValue().getValue() <= endValue) { // actually loop
                 while (!tokenSequencer.match("ENDFOR") && tokenSequencer.thereIsAToken()) {
@@ -400,6 +412,14 @@ public class Parser {
             }
             loopCounter.setValue(new IntegerValue(endValue));
         }
+        else {
+            // The initial loop condition means that the loop was never executed.
+            // Ignore all tokens until we hit ENDFOR.
+            while (!tokenSequencer.match("ENDFOR") && tokenSequencer.thereIsAToken()) {
+                tokenSequencer.advance();
+            }
+            endIndex = tokenSequencer.getCurrentIndex();
+        }
 
         if (endIndex > -1) {
             tokenSequencer.jumpToPosition(endIndex);
@@ -407,11 +427,11 @@ public class Parser {
         tokenSequencer.expect("ENDFOR");
     }
 
-    private void length() throws InterpreterException {
+    private void length() throws InterpreterException, ReturnException  {
         Value rvalue;
         tokenSequencer.expect("LEN");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         rvalue = vm.peekValue();
         if (rvalue instanceof StringValue) {
             vm.getValueStack().push(vm.getValueStack().popString().length());
@@ -426,41 +446,41 @@ public class Parser {
         tokenSequencer.expect(")");
     }
 
-    private void stringPosition() throws InterpreterException {
+    private void stringPosition() throws InterpreterException, ReturnException  {
         String lvalue, rvalue;
         tokenSequencer.expect("POSITION");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         lvalue = vm.getValueStack().popString();
         tokenSequencer.expect(",");
-        statement();
+        expression();
         rvalue = vm.getValueStack().popString();
         tokenSequencer.expect(")");
         vm.getValueStack().push(lvalue.indexOf(rvalue));
     }
 
-    private void stringSubstring() throws InterpreterException {
+    private void stringSubstring() throws InterpreterException, ReturnException  {
         int start, end;
         String str;
         tokenSequencer.expect("SUBSTRING");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         start = vm.getValueStack().popInteger();
         tokenSequencer.expect(",");
-        statement();
+        expression();
         end = vm.getValueStack().popInteger();
         tokenSequencer.expect(",");
-        statement();
+        expression();
         str = vm.getValueStack().popString();
         tokenSequencer.expect(")");
         vm.getValueStack().push(str.substring(start, end + 1));
     }
 
-    private void stringToInt() throws InterpreterException {
+    private void stringToInt() throws InterpreterException, ReturnException  {
         String str;
         tokenSequencer.expect("STRING_TO_INT");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         str = vm.getValueStack().popString();
         tokenSequencer.expect(")");
         try {
@@ -470,11 +490,11 @@ public class Parser {
         }
     }
 
-    private void stringToReal() throws InterpreterException {
+    private void stringToReal() throws InterpreterException, ReturnException  {
         String str;
         tokenSequencer.expect("STRING_TO_REAL");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         str = vm.getValueStack().popString();
         tokenSequencer.expect(")");
         try {
@@ -484,67 +504,67 @@ public class Parser {
         }
     }
 
-    private void intToString() throws InterpreterException {
+    private void intToString() throws InterpreterException, ReturnException  {
         int i;
         tokenSequencer.expect("INT_TO_STRING");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         i = vm.getValueStack().popInteger();
         tokenSequencer.expect(")");
         vm.getValueStack().push(Integer.toString(i));
     }
 
-    private void realToString() throws InterpreterException {
+    private void realToString() throws InterpreterException, ReturnException  {
         double d;
         tokenSequencer.expect("REAL_TO_STRING");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         d = vm.getValueStack().popReal();
         tokenSequencer.expect(")");
         vm.getValueStack().push(Double.toString(d));
     }
 
-    private void charToCode() throws InterpreterException {
+    private void charToCode() throws InterpreterException, ReturnException  {
         String s;
         tokenSequencer.expect("CHAR_TO_CODE");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         s = vm.getValueStack().popString();
         tokenSequencer.expect(")");
         vm.getValueStack().push((int) s.charAt(0));
     }
 
-    private void codeToChar() throws InterpreterException {
+    private void codeToChar() throws InterpreterException, ReturnException  {
         int i;
         tokenSequencer.expect("CODE_TO_CHAR");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         i = vm.getValueStack().popInteger();
         tokenSequencer.expect(")");
         vm.getValueStack().push(String.valueOf((char) i));
     }
 
-    private void userInput() throws InterpreterException {
+    private void userInput() throws InterpreterException, ReturnException  {
         String input;
         tokenSequencer.expect("USERINPUT");
         input = inputProvider.getInput();
         vm.getValueStack().push(input.trim());
     }
 
-    private void randomInt() throws InterpreterException {
+    private void randomInt() throws InterpreterException, ReturnException  {
         int start, end;
         tokenSequencer.expect("RANDOM_INT");
         tokenSequencer.expect("(");
-        statement();
+        expression();
         start = vm.getValueStack().popInteger();
         tokenSequencer.expect(",");
-        statement();
+        expression();
         end = vm.getValueStack().popInteger();
         tokenSequencer.expect(")");
         vm.getValueStack().push(new Random().nextInt(end - start + 1) + start);
     }
 
-    private void booleanExpression() throws InterpreterException {
+    private void booleanExpression() throws InterpreterException, ReturnException  {
         booleanTerm();
         while (tokenSequencer.match("OR") && tokenSequencer.thereIsAToken()) {
             boolean lvalue, rvalue;
@@ -561,7 +581,7 @@ public class Parser {
         }
     }
 
-    private void booleanTerm() throws InterpreterException {
+    private void booleanTerm() throws InterpreterException, ReturnException  {
         notFactor();
         while (tokenSequencer.match("AND") && tokenSequencer.thereIsAToken()) {
             boolean lvalue, rvalue;
@@ -578,7 +598,7 @@ public class Parser {
         }
     }
 
-    private void notFactor() throws InterpreterException {
+    private void notFactor() throws InterpreterException, ReturnException  {
         if (tokenSequencer.match("NOT")) {
             tokenSequencer.expect("NOT");
             relation();
@@ -588,7 +608,7 @@ public class Parser {
         }
     }
 
-    private void relation() throws InterpreterException {
+    private void relation() throws InterpreterException, ReturnException  {
         expression();
         while (tokenSequencer.match("<") || tokenSequencer.match(">") || tokenSequencer.match("=") || tokenSequencer.match("!")) {
             Value lvalue = vm.popValue(), rvalue;
@@ -596,11 +616,11 @@ public class Parser {
                 tokenSequencer.advance();
                 if (tokenSequencer.match("=")) {
                     tokenSequencer.advance();
-                    booleanExpression();
+                    expression();
                     rvalue = vm.popValue();
                     vm.getValueStack().push(lvalue.compare(rvalue) < 1);
                 } else {
-                    booleanExpression();
+                    expression();
                     rvalue = vm.popValue();
                     vm.getValueStack().push(lvalue.compare(rvalue) < 0);
                 }
@@ -608,30 +628,30 @@ public class Parser {
                 tokenSequencer.advance();
                 if (tokenSequencer.match("=")) {
                     tokenSequencer.advance();
-                    booleanExpression();
+                    expression();
                     rvalue = vm.popValue();
                     vm.getValueStack().push(lvalue.compare(rvalue) > -1);
                 } else {
-                    booleanExpression();
+                    expression();
                     rvalue = vm.popValue();
                     vm.getValueStack().push(lvalue.compare(rvalue) > 0);
                 }
             } else if (tokenSequencer.match("=")) {
                 tokenSequencer.advance();
-                booleanExpression();
+                expression();
                 rvalue = vm.popValue();
                 vm.getValueStack().push(lvalue.equal(rvalue));
             } else if (tokenSequencer.match("!")) {
                 tokenSequencer.advance();
                 tokenSequencer.expect("=");
-                booleanExpression();
+                expression();
                 rvalue = vm.popValue();
                 vm.getValueStack().push(!lvalue.equal(rvalue));
             }
         }
     }
 
-    private void expression() throws InterpreterException {
+    private void expression() throws InterpreterException, ReturnException  {
         term();
         while (tokenSequencer.match("+") || tokenSequencer.match("-")) {
             Value lvalue = vm.popValue(), rvalue;
@@ -649,7 +669,7 @@ public class Parser {
         }
     }
 
-    private void term() throws InterpreterException {
+    private void term() throws InterpreterException, ReturnException  {
         factor();
         if ((tokenSequencer.match("*") || (tokenSequencer.match("/") || tokenSequencer.match("DIV") || tokenSequencer.match("MOD")))) {
             Value lvalue = vm.popValue(), rvalue;
@@ -677,7 +697,7 @@ public class Parser {
         }
     }
 
-    private void factor() throws InterpreterException {
+    private void factor() throws InterpreterException, ReturnException  {
         if (tokenSequencer.match("(")) {
             tokenSequencer.expect("(");
             booleanExpression();
@@ -687,7 +707,7 @@ public class Parser {
         }
     }
 
-    private void literal() throws InterpreterException {
+    private void literal() throws InterpreterException, ReturnException  {
         //TODO
         if (isStringLiteral()) {
             stringLiteral();
@@ -741,7 +761,7 @@ public class Parser {
         return (Character.isDigit(tok.charAt(0)) || tok.charAt(0) == '-');
     }
 
-    private void variable() throws InterpreterException {
+    private void variable() throws InterpreterException, ReturnException  {
         Variable v = vm.getVariable(tokenSequencer.getCurrentTokenName());
         tokenSequencer.advance();
         if (tokenSequencer.match("[")) { // array indexing
@@ -782,7 +802,7 @@ public class Parser {
         tokenSequencer.advance();
     }
 
-    private void arrayLiteral() throws InterpreterException {
+    private void arrayLiteral() throws InterpreterException, ReturnException {
         ArrayValue ary = new ArrayValue();
         int index = 0;
         
