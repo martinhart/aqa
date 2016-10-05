@@ -4,6 +4,7 @@
 package aqa.ui;
 
 import java.awt.FileDialog;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -16,10 +17,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -65,6 +69,18 @@ public class MainWindow extends JFrame {
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setTitle("AQA Pseudocode Interpreter");
+        
+        try {
+            List<Image> icons = new ArrayList<>();
+            icons.add(new ImageIcon(getClass().getClassLoader().getResource("aqa/logo16x16.png")).getImage());
+            icons.add(new ImageIcon(getClass().getClassLoader().getResource("aqa/logo24x24.png")).getImage());
+            icons.add(new ImageIcon(getClass().getClassLoader().getResource("aqa/logo32x32.png")).getImage());
+            icons.add(new ImageIcon(getClass().getClassLoader().getResource("aqa/logo96x96.png")).getImage());
+            this.setIconImages(icons);
+        }
+        catch(Exception e) {
+            // ignore icon issues.
+        }
         
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
