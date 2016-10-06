@@ -193,6 +193,23 @@ public class Parser {
         vm.addSubroutine(s);
     }
     
+    /**
+     * Execute a subroutine call.  To achieve this we need to take the following
+     * steps.
+     * 
+     * 1. store current context
+     * 2. create a context for the subroutine.
+     * 3. get values of arguments from the call line, and create variables
+     *      to place in the new context.
+     * 4. parse the subroutine tokens in the new context.
+     * 5. get a return value (if any) and push onto old context
+     * 6. replace context.
+     * 
+     * @throws InterpreterException if execution fails
+     * @throws ReturnException if early return from anywhere (subfunction) is triggered.
+     * 
+     * TODO: this function does too much.  break it down.
+     */
     private void subroutineCall() throws InterpreterException, ReturnException  {
         Subroutine s = vm.getSubroutine(tokenSequencer.getCurrentTokenName());
         VirtualMachine currentVM = vm;
@@ -226,6 +243,11 @@ public class Parser {
         this.tokenSequencer = currentTokenSequencer;
     }
 
+    /**
+     * A Block is a set of instructions.
+     * 
+     * @throws InterpreterException if an error occurs
+     */
     private void block() throws InterpreterException {
         try {
             while (tokenSequencer.thereIsAToken()) {
@@ -236,6 +258,12 @@ public class Parser {
         }
     }
 
+    /**
+     * An instruction is either an assignment or a statement.
+     * 
+     * @throws InterpreterException if an error occurs
+     * @throws ReturnException if we are breaking out of a subroutine
+     */
     private void instruction() throws InterpreterException, ReturnException {
         instructionListener.newInstruction(tokenSequencer.getCurrentTokenLine(), vm);
         
@@ -267,6 +295,15 @@ public class Parser {
         }
     }
 
+    /**
+     * An assignment consists of constantLValue <- expression
+     * 
+     * TODO: this function is currently also handling array assignment, move out
+     * to make intent clearer.
+     * 
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void assignment() throws InterpreterException, ReturnException {
         try {
             Variable var = constantLValue();
@@ -303,6 +340,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Handle [constant] lvalues
+     * @return the associated variable.
+     * @throws InterpreterException 
+     */
     private Variable constantLValue() throws InterpreterException {
         Variable var;
 
@@ -317,12 +359,21 @@ public class Parser {
         return var;
     }
 
+    /**
+     * Handle an lvalue
+     * @return the associated variable
+     */
     private Variable lValue() {
         Variable v = vm.getVariable(tokenSequencer.getCurrentTokenName());
         tokenSequencer.advance();
         return v;
     }
 
+    /**
+     * A statement is either a built in control statement or a boolean expression
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void statement() throws InterpreterException, ReturnException {
         if (tokenSequencer.match("RETURN")) {
             tokenSequencer.advance();
@@ -346,28 +397,47 @@ public class Parser {
         }
     }
 
+    /**
+     * Process user output instruction
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void output() throws InterpreterException, ReturnException {
         tokenSequencer.expect("OUTPUT");
         booleanExpression();
         outputWriter.output(vm.popValue().output());
     }
 
+    /**
+     * Process debug output instruction
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void inspect() throws InterpreterException, ReturnException  {
         tokenSequencer.expect("INSPECT");
         booleanExpression();
         outputWriter.output(vm.popValue().inspect());
     }
 
+    /**
+     * Handle the IF statement
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void ifStatement() throws InterpreterException, ReturnException  {
         if (ifStatementCondition()) {
             ifStatementBlock();
         } else {
+            // the original condition was false, so we need to see if there's
+            // an else block to execute.
             while (!tokenSequencer.match("ENDIF") && tokenSequencer.thereIsAToken()) {
                 if (tokenSequencer.match("ELSE")) {
                     tokenSequencer.expect("ELSE");
                     if (tokenSequencer.match("IF")) {
+                        // there's an else if we need to handle.
                         elseIfStatement();
                     } else {
+                        // simply execute the else block.
                         ifStatementBlock();
                     }
                 } else {
@@ -378,6 +448,11 @@ public class Parser {
         tokenSequencer.expect("ENDIF");
     }
 
+    /**
+     * Deal with ELSE IF condition
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void elseIfStatement() throws InterpreterException, ReturnException  {
         if (ifStatementCondition()) {
             ifStatementBlock();
@@ -385,7 +460,9 @@ public class Parser {
     }
 
     /**
-     * Chomp IF <cond> THEN
+     * Handle the condition of an if statement:
+     * 
+     *  IF <cond> THEN
      *
      * @return <cond> == true
      * @throws InterpreterException
@@ -410,13 +487,24 @@ public class Parser {
                 haveSeenElse = true;
             }
             if (!haveSeenElse) {
+                // We are inside the body and we have not come to end of block
+                // so we execute the line.
                 instruction();
             } else {
+                // We are inside the ELSE section, we shouldn't be executing
+                // these statements since the original IF condition was true.
                 tokenSequencer.advance();
             }
         }
     }
 
+    /**
+     * Handle WHILE statement constructs
+     * @throws InterpreterException
+     * @throws ReturnException 
+     * 
+     * TODO: break this down
+     */
     private void whileStatement() throws InterpreterException, ReturnException  {
         int indexOfCondition, indexOfEndWhile = 0;
 
@@ -425,14 +513,21 @@ public class Parser {
         booleanExpression();
         if (vm.getValueStack().popBoolean()) {
             do {
+                // The loop condition is true, so we execute all statements until
+                // we come to end of loop.
                 while (!tokenSequencer.match("ENDWHILE") && tokenSequencer.thereIsAToken()) {
                     instruction();
                 }
+                
+                // we are at the end of the loop so we need to test the condition
+                // again.
                 indexOfEndWhile = tokenSequencer.getCurrentIndex();
                 tokenSequencer.jumpToPosition(indexOfCondition);
                 booleanExpression();
             } while (vm.getValueStack().popBoolean());
         } else {
+            // the loop condition is false, so we skip all statements until we
+            // come to the end of the loop.
             while (!tokenSequencer.match("ENDWHILE") && tokenSequencer.thereIsAToken()) {
                 tokenSequencer.advance();
             }
@@ -442,47 +537,69 @@ public class Parser {
         tokenSequencer.expect("ENDWHILE");
     }
 
+    /**
+     * Handle REPEAT statement constructs
+     * 
+     * TODO: break this down.
+     * 
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void repeatStatement() throws InterpreterException, ReturnException  {
         int nextStatement = -1, firstStatement = -1;
 
         tokenSequencer.expect("REPEAT");
         firstStatement = tokenSequencer.getCurrentIndex();
         do {
+            // execute the loop body.
             tokenSequencer.jumpToPosition(firstStatement);
             while (!tokenSequencer.match("UNTIL") && tokenSequencer.thereIsAToken()) {
                 instruction();
             }
             tokenSequencer.expect("UNTIL");
+            
+            // check the loop condition.
             booleanExpression();
             nextStatement = tokenSequencer.getCurrentIndex();
         } while (!vm.getValueStack().popBoolean());
+        
         tokenSequencer.jumpToPosition(nextStatement);
     }
 
     /**
-     * FOR i <- 0 TO 3 statements ENDFOR @throws InterpreterException
-     *
+     * Handle FOR statement constructs:
+     * 
+     *  FOR i <- 0 TO 3 statements ENDFOR 
+     * 
+     * TODO: break this down
+     * 
+     * @throws InterpreterException
      */
     private void forStatement() throws InterpreterException, ReturnException  {
         int i, endValue, startIndex, endIndex = -1;
         String variableName;
         Variable loopCounter;
     
+        // find the variable containing loop counter and assign initial value
         tokenSequencer.expect("FOR");
         variableName = tokenSequencer.getCurrentTokenName();
         assignment();
         loopCounter = vm.getVariable(variableName);
 
+        // find the end value and store it for later checking.
         tokenSequencer.expect("TO");
         expression();
         endValue = vm.getValueStack().popInteger();
         startIndex = tokenSequencer.getCurrentIndex();
         
         if ((int) loopCounter.getValue().getValue() <= endValue) {
+            // The loop needs to run at least once.
             while ((int) loopCounter.getValue().getValue() <= endValue) { // actually loop
                 while (!tokenSequencer.match("ENDFOR") && tokenSequencer.thereIsAToken()) {
                     instruction();
                 }
+                
+                // increment loop counter
                 endIndex = tokenSequencer.getCurrentIndex();
                 tokenSequencer.jumpToPosition(startIndex);
                 loopCounter.setValue(loopCounter.getValue().add(new IntegerValue(1)));
@@ -504,25 +621,26 @@ public class Parser {
         tokenSequencer.expect("ENDFOR");
     }
 
+    /**
+     * Handle LEN(...)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void length() throws InterpreterException, ReturnException  {
         Value rvalue;
         tokenSequencer.expect("LEN");
         tokenSequencer.expect("(");
         expression();
-        rvalue = vm.peekValue();
-        if (rvalue instanceof StringValue) {
-            vm.getValueStack().push(vm.getValueStack().popString().length());
-        }
-        else if (rvalue instanceof ArrayValue) {
-            ArrayValue av = (ArrayValue) vm.popValue();
-            vm.pushValue(av.length());
-        }
-        else {
-            throw new InterpreterException("cannot call LEN on " + rvalue.inspect());
-        }
+        rvalue = vm.popValue();
+        vm.pushValue(rvalue.length());
         tokenSequencer.expect(")");
     }
 
+    /**
+     * Handle POSITION(str, int)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void stringPosition() throws InterpreterException, ReturnException  {
         String lvalue, rvalue;
         tokenSequencer.expect("POSITION");
@@ -536,6 +654,11 @@ public class Parser {
         vm.getValueStack().push(lvalue.indexOf(rvalue));
     }
 
+    /**
+     * HANDLE SUBSTRING(start, end, string)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void stringSubstring() throws InterpreterException, ReturnException  {
         int start, end;
         String str;
@@ -550,9 +673,14 @@ public class Parser {
         expression();
         str = vm.getValueStack().popString();
         tokenSequencer.expect(")");
-        vm.getValueStack().push(str.substring(start, end + 1));
+        vm.getValueStack().push(str.substring(start, end + 1)); // +1 inclusive substring (see AQA spec)
     }
 
+    /**
+     * Handle STRING_TO_INT(str)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void stringToInt() throws InterpreterException, ReturnException  {
         String str;
         tokenSequencer.expect("STRING_TO_INT");
@@ -567,6 +695,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Handle STRING_TO_REAL(str)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void stringToReal() throws InterpreterException, ReturnException  {
         String str;
         tokenSequencer.expect("STRING_TO_REAL");
@@ -581,6 +714,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Handle INT_TO_STRING(int)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void intToString() throws InterpreterException, ReturnException  {
         int i;
         tokenSequencer.expect("INT_TO_STRING");
@@ -591,6 +729,11 @@ public class Parser {
         vm.getValueStack().push(Integer.toString(i));
     }
 
+    /**
+     * Handle REAL_TO_STRING(real)
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void realToString() throws InterpreterException, ReturnException  {
         double d;
         tokenSequencer.expect("REAL_TO_STRING");
@@ -601,6 +744,11 @@ public class Parser {
         vm.getValueStack().push(Double.toString(d));
     }
 
+    /**
+     * CHAR_TO_CODE statement
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void charToCode() throws InterpreterException, ReturnException  {
         String s;
         tokenSequencer.expect("CHAR_TO_CODE");
@@ -611,6 +759,11 @@ public class Parser {
         vm.getValueStack().push((int) s.charAt(0));
     }
 
+    /**
+     * CODE_TO_CHAR statement
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void codeToChar() throws InterpreterException, ReturnException  {
         int i;
         tokenSequencer.expect("CODE_TO_CHAR");
@@ -621,6 +774,11 @@ public class Parser {
         vm.getValueStack().push(String.valueOf((char) i));
     }
 
+    /**
+     * USERINPUT statement
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void userInput() throws InterpreterException, ReturnException  {
         String input;
         tokenSequencer.expect("USERINPUT");
@@ -628,6 +786,11 @@ public class Parser {
         vm.getValueStack().push(input.trim());
     }
 
+    /**
+     * RANDOM_INT statement
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void randomInt() throws InterpreterException, ReturnException  {
         int start, end;
         tokenSequencer.expect("RANDOM_INT");
@@ -641,6 +804,11 @@ public class Parser {
         vm.getValueStack().push(new Random().nextInt(end - start + 1) + start);
     }
 
+    /**
+     * <boolean-term> [ OR <boolean-term> ]
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void booleanExpression() throws InterpreterException, ReturnException  {
         booleanTerm();
         while (tokenSequencer.match("OR") && tokenSequencer.thereIsAToken()) {
@@ -658,13 +826,18 @@ public class Parser {
         }
     }
 
+    /**
+     * <not-factor> [ AND <not-factor> ]
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void booleanTerm() throws InterpreterException, ReturnException  {
         notFactor();
         while (tokenSequencer.match("AND") && tokenSequencer.thereIsAToken()) {
             boolean lvalue, rvalue;
             lvalue = vm.getValueStack().popBoolean();
             tokenSequencer.expect("AND");
-            notFactor(); // TODO - should this be booleanExpression?
+            notFactor();
             rvalue = vm.getValueStack().popBoolean();
             if (lvalue && rvalue) {
                 vm.getValueStack().push(true);
@@ -675,6 +848,11 @@ public class Parser {
         }
     }
 
+    /**
+     * [NOT] <relation>
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void notFactor() throws InterpreterException, ReturnException  {
         if (tokenSequencer.match("NOT")) {
             tokenSequencer.expect("NOT");
@@ -685,6 +863,11 @@ public class Parser {
         }
     }
 
+    /**
+     * <expression> [ [comparison] <expression> ]
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void relation() throws InterpreterException, ReturnException  {
         expression();
         while (tokenSequencer.match("<") || tokenSequencer.match(">") || tokenSequencer.match("=") || tokenSequencer.match("!")) {
@@ -728,6 +911,11 @@ public class Parser {
         }
     }
 
+    /**
+     * <term> [ +/- <term> ]
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void expression() throws InterpreterException, ReturnException  {
         term();
         while (tokenSequencer.match("+") || tokenSequencer.match("-")) {
@@ -746,6 +934,11 @@ public class Parser {
         }
     }
 
+    /**
+     * <factor> [ [ * / DIV MOD ] <factor> ]
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void term() throws InterpreterException, ReturnException  {
         factor();
         if ((tokenSequencer.match("*") || (tokenSequencer.match("/") || tokenSequencer.match("DIV") || tokenSequencer.match("MOD")))) {
@@ -774,6 +967,11 @@ public class Parser {
         }
     }
 
+    /**
+     * ( <boolean-expression> ) OR <literal>
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void factor() throws InterpreterException, ReturnException  {
         if (tokenSequencer.match("(")) {
             tokenSequencer.expect("(");
@@ -784,6 +982,16 @@ public class Parser {
         }
     }
 
+    /**
+     * Literal handling:  Process
+     *  actual literal values
+     *  variables
+     *  built in function calls
+     *  user defined subroutine calls
+     * 
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void literal() throws InterpreterException, ReturnException  {
         //TODO
         if (isStringLiteral()) {
@@ -838,6 +1046,11 @@ public class Parser {
         return (Character.isDigit(tok.charAt(0)) || tok.charAt(0) == '-');
     }
 
+    /**
+     * Handle requests for a variable
+     * @throws InterpreterException
+     * @throws ReturnException 
+     */
     private void variable() throws InterpreterException, ReturnException  {
         Variable v = vm.getVariable(tokenSequencer.getCurrentTokenName());
         tokenSequencer.advance();
@@ -907,15 +1120,11 @@ public class Parser {
             tokenSequencer.advance();
             tokenSequencer.getCurrentToken().setName("-" + tokenSequencer.getCurrentTokenName());
         }
-        if (contains(".")) {
+        if (tokenSequencer.contains(".")) {
             realLiteral();
         } else {
             integerLiteral();
         }
-    }
-
-    private boolean contains(String value) {
-        return tokenSequencer.contains(value);
     }
 
     private void realLiteral() throws InterpreterException {
