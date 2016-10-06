@@ -7,14 +7,22 @@ import aqa.InterpreterException;
 import java.util.HashMap;
 
 /**
- *
+ * A concrete implementation of the SubroutineTable that is used inside the
+ * virtual machine.
+ * 
  * @author martinhart
  */
-public class SubroutinesImpl implements Subroutines {
+public class SubroutineTableImpl implements SubroutineTable {
 
+    /**
+     * Mapping of subroutine name to subroutine objects
+     */
     private final HashMap<String, Subroutine> subroutines;
 
-    public SubroutinesImpl() {
+    /**
+     * Create a new subroutine table
+     */
+    public SubroutineTableImpl() {
         subroutines = new HashMap<>();
     }
 

@@ -6,7 +6,7 @@ package aqa.value;
 import aqa.InterpreterException;
 
 /**
- *
+ * This class represents a boolean
  * @author martinhart
  */
 public class BooleanValue extends ValueBase {

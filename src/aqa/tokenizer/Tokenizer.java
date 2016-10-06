@@ -8,24 +8,66 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- *
+ * This class reads the source code and splits it up into tokens to be 
+ * parsed.
+ * 
  * @author martinhart
  */
 public class Tokenizer {
 
+    /**
+     * The input source code
+     */
     private final Reader fin;
+    
+    /**
+     * Line number we are currently tokenizing
+     */
     private int currentLine;
+    
+    /**
+     * Line number of current token
+     */
     private int tokenLine;
+    
+    /**
+     * Character we're currently reading
+     */
     private char character;
+    
+    /**
+     * Buffer we're filling with characters until we hit a terminator
+     */
     private String buffer;
+    
+    /**
+     * The set of tokens we've created
+     */
     private Tokens tokens;
+    
+    /**
+     * Are we currently in the middle of a string literal?
+     */
     private boolean insideStringLiteral;
-    private final char[] TOKENS = {'\n', '(', ')', ' ', '\t', '+', '-', '>', '<', '=', '*', ',', '[', ']', '/', '!'};
+    
+    /**
+     * The values that separate tokens.
+     */
+    private final char[] TERMINATORS = {'\n', '(', ')', ' ', '\t', '+', '-', '>', '<', '=', '*', ',', '[', ']', '/', '!'};
 
+    /**
+     * Create a new tokenizer ready to run.
+     * @param reader provider of the source code
+     */
     public Tokenizer(Reader reader) {
         this.fin = reader;
     }
 
+    /**
+     * Run through the source code and create some tokens from it
+     * @return the created tokens
+     * @throws InterpreterException if there are problems tokenizing the input data.
+     */
     public Tokens tokenize() throws InterpreterException {
 
         initialise();
@@ -62,6 +104,9 @@ public class Tokenizer {
         return tokens;
     }        
 
+    /**
+     * Set up initial state
+     */
     private void initialise() {
         currentLine = 1;
         tokenLine = 1;
@@ -70,6 +115,10 @@ public class Tokenizer {
         insideStringLiteral = false;
     }
 
+    /**
+     * @return true if there's more in the input stream
+     * @throws InterpreterException if an error occurs
+     */
     private boolean thereIsMoreData() throws InterpreterException {
         try {
             int i = fin.read();
@@ -137,8 +186,8 @@ public class Tokenizer {
     }
     
     private boolean isEndOfToken() {
-        for (int i=0; i < TOKENS.length; i++) {
-            if (character == TOKENS[i]) {
+        for (int i=0; i < TERMINATORS.length; i++) {
+            if (character == TERMINATORS[i]) {
                 return true;
             }
         }

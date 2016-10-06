@@ -5,14 +5,13 @@ package aqa;
 
 import aqa.parser.VirtualMachine;
 import aqa.subroutine.Subroutine;
-import aqa.subroutine.Subroutines;
-import aqa.subroutine.SubroutinesImpl;
+import aqa.subroutine.SubroutineTableImpl;
 import aqa.value.Value;
 import aqa.value.ValueBase;
 import aqa.value.ValueStack;
 import aqa.value.ValueStackImpl;
 import aqa.variable.Variable;
-import aqa.variable.Variables;
+import aqa.variable.VariableTable;
 import java.util.Iterator;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
@@ -20,6 +19,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
+import aqa.subroutine.SubroutineTable;
 
 /**
  *
@@ -88,12 +88,12 @@ public class VirtualMachineTest {
     
     @Test
     public void getVariablesReturnsVariables() {
-        assertEquals(true, subject.getVariables() instanceof Variables);
+        assertEquals(true, subject.getVariables() instanceof VariableTable);
     }
 
     @Test
     public void getSubroutinesReturnsSubroutines() {
-        assertEquals(true, subject.getSubroutines() instanceof Subroutines);
+        assertEquals(true, subject.getSubroutineTable() instanceof SubroutineTable);
     }
     
     @Test
@@ -110,13 +110,13 @@ public class VirtualMachineTest {
     }
 
     private void createSubjectWithSubroutines() throws InterpreterException {
-        Subroutines s = new SubroutinesImpl();
+        SubroutineTable s = new SubroutineTableImpl();
         s.add(new Subroutine("1"));
         s.add(new Subroutine("2"));
         subject = new VirtualMachine(s);
     }
     
-    private class VariablesStub extends Variables {
+    private class VariablesStub extends VariableTable {
 
         public Variable setCalledWith;
         public String getCalledWith;
@@ -143,7 +143,7 @@ public class VirtualMachineTest {
         }
     }
 
-    private class SubroutinesStub implements Subroutines {
+    private class SubroutinesStub implements SubroutineTable {
 
         public Subroutine addCalledWith;
         public String getCalledWith;

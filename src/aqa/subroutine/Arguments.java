@@ -3,6 +3,7 @@
  */
 package aqa.subroutine;
 
+import aqa.InterpreterException;
 import java.util.ArrayList;
 
 /**
@@ -26,11 +27,11 @@ public class Arguments {
         arguments.add(a);
     }
 
-    Argument get(int i) throws ArgumentException {
+    Argument get(int i) throws InterpreterException {
         try {
             return arguments.get(i);
         } catch (IndexOutOfBoundsException e) {
-            throw new ArgumentException("No argument at index " + i);
+            throw new InterpreterException("No argument at index " + i);
         }
     }
 

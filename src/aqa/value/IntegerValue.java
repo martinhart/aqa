@@ -6,6 +6,7 @@ package aqa.value;
 import aqa.InterpreterException;
 
 /**
+ * This class represents integers
  *
  * @author martinhart
  */
@@ -38,18 +39,16 @@ public class IntegerValue extends ValueBase {
                 return 1;
             }
             return 0;
-        }
-        else if (other instanceof RealValue) {
+        } else if (other instanceof RealValue) {
             RealValue o = (RealValue) other;
             if (value < o.value) {
                 return -1;
             } else if (value > o.value) {
                 return 1;
             }
-            return 0;            
+            return 0;
         }
-        bugout("cannot compare with '" + other.inspect() + "'");
-        return 0;
+        return super.compare(other);
     }
 
     @Override
@@ -69,9 +68,8 @@ public class IntegerValue extends ValueBase {
         } else if (other instanceof RealValue) {
             RealValue r = (RealValue) other;
             return new RealValue(this.value + r.value);
-        } else {
-            return super.add(other);
         }
+        return super.add(other);
     }
 
     @Override
@@ -82,10 +80,8 @@ public class IntegerValue extends ValueBase {
         } else if (other instanceof RealValue) {
             RealValue r = (RealValue) other;
             return new RealValue(this.value - r.value);
-        } else {
-            bugout("subtract");
-            return super.subtract(other);
         }
+        return super.subtract(other);
     }
 
     @Override
@@ -96,9 +92,8 @@ public class IntegerValue extends ValueBase {
         } else if (other instanceof RealValue) {
             RealValue o = (RealValue) other;
             return new RealValue(this.value * o.value);
-        } else {
-            return super.multiply(other);
         }
+        return super.multiply(other);
     }
 
     @Override
@@ -109,9 +104,8 @@ public class IntegerValue extends ValueBase {
         } else if (other instanceof RealValue) {
             RealValue r = (RealValue) other;
             return new RealValue(this.value / r.value);
-        } else {
-            return super.divide(other);
         }
+        return super.divide(other);
     }
 
     @Override
@@ -119,9 +113,8 @@ public class IntegerValue extends ValueBase {
         if (other instanceof IntegerValue) {
             IntegerValue i = (IntegerValue) other;
             return new IntegerValue(this.value / i.value);
-        } else {
-            return super.div(other);
         }
+        return super.div(other);
     }
 
     @Override
@@ -129,16 +122,15 @@ public class IntegerValue extends ValueBase {
         if (other instanceof IntegerValue) {
             IntegerValue i = (IntegerValue) other;
             return new IntegerValue(this.value % i.value);
-        } else {
-            return super.mod(other);
         }
+        return super.mod(other);
     }
 
     @Override
     public Object getValue() {
         return value;
     }
-    
+
     @Override
     public StringValue toStr() throws InterpreterException {
         return new StringValue(String.valueOf(value));

@@ -6,7 +6,7 @@ package aqa.ui;
 import aqa.Interpreter;
 import aqa.InterpreterException;
 import aqa.parser.InputProvider;
-import aqa.parser.InstructionListener;
+import aqa.parser.IgnoreInstructionListener;
 import aqa.parser.OutputWriter;
 import aqa.parser.VirtualMachine;
 import java.io.StringReader;
@@ -102,12 +102,12 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
     private final CodeEditorPanel editorPanel;
     private final OutputPanel outputPanel;
     private final VariableTablePanel variableTablePanel;
-    private final InstructionListener instructionListener;
+    private final IgnoreInstructionListener instructionListener;
     private final String codeToExecute;
     
     public InterpreterWorker(MainWindow mainWindow, CodeEditorPanel editorPanel, 
             OutputPanel outputPanel, VariableTablePanel variableTablePanel,
-            InstructionListener instructionListener) {
+            IgnoreInstructionListener instructionListener) {
         this.mainWindow = mainWindow;
         this.editorPanel = editorPanel;
         this.outputPanel = outputPanel;
@@ -120,7 +120,7 @@ public class InterpreterWorker extends SwingWorker<Integer, UpdateInformation> {
     public InterpreterWorker(MainWindow mainWindow, CodeEditorPanel editorPanel, 
             OutputPanel outputPanel, VariableTablePanel variableTablePanel) {
         this(mainWindow, editorPanel, outputPanel, variableTablePanel, 
-                new InstructionListener());
+                new IgnoreInstructionListener());
     }
 
     @Override

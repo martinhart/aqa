@@ -12,13 +12,13 @@ import static org.junit.Assert.*;
  *
  * @author martinhart
  */
-public class SubroutinesImplTest {
+public class SubroutineTableImplTest {
     
-    private SubroutinesImpl subject;
+    private SubroutineTableImpl subject;
     
     @Before
     public void setUp() {
-        subject = new SubroutinesImpl();
+        subject = new SubroutineTableImpl();
     }
     
     @Test

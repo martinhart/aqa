@@ -34,7 +34,7 @@ public class ParserTest {
         assertEquals(new Integer(100), instructionListener.lines.get(1));
     }
 
-    class InstructionListenerStub extends InstructionListener {
+    class InstructionListenerStub implements InstructionListener {
         
         public final List<Integer> lines = new ArrayList<>();
         

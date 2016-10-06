@@ -6,21 +6,27 @@ package aqa.value;
 import aqa.InterpreterException;
 
 /**
- *
+ * This class implements the full Value interface and can be used as a base
+ * for all Value types.  It provides default behaviour for all of the Value
+ * methods - which is basically to throw an exception.
+ * 
+ * You can derive from this class when creating a new Value type and override the
+ * specific methods that make sense for your type.
+ * 
  * @author martinhart
  */
 public class ValueBase implements Value {
     
     private final String type;
     
+    /**
+     * Construct with the type of your child.
+     * @param type the type of the value (e.g. "int", "real" etc)
+     */
     public ValueBase(String type) {
         this.type = type;
     }
-    
-    protected void bugout(String fn) throws InterpreterException {
-        throw new InterpreterException(fn + ": invalid operation on " + type);
-    }    
-
+   
     @Override
     public String inspect() throws InterpreterException {
         return "#<" + type + ">";
@@ -34,7 +40,7 @@ public class ValueBase implements Value {
 
     @Override
     public int compare(Value other) throws InterpreterException {
-        bugout("compare");
+        bugout("cannot compare with " + other.inspect());
         return 0;
     }
 
@@ -112,4 +118,15 @@ public class ValueBase implements Value {
     public Value makeCopy() throws InterpreterException {
         return this;
     }
+
+    /**
+     * Throw an exception with a helpful error message that can aid the user
+     * in working out how they've violated the language rules.
+     * @param fn The name of the function being called.
+     * @throws InterpreterException containing error message.
+     */
+    protected void bugout(String fn) throws InterpreterException {
+        throw new InterpreterException(fn + ": invalid operation on " + type);
+    }    
+
 }

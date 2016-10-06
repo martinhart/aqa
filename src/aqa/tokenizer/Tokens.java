@@ -7,13 +7,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- *
+ * This class represents a container of tokens.
  * @author martinhart
  */
 public class Tokens implements Iterable<Token> {
     
+    /**
+     * The actual tokens
+     */
     private final ArrayList<Token> tokens;
-
+    
     public Tokens() {
         this.tokens = new ArrayList<>();
     }

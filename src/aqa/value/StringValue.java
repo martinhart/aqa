@@ -6,13 +6,14 @@ package aqa.value;
 import aqa.InterpreterException;
 
 /**
+ * A representation of strings
  *
  * @author martinhart
  */
 public class StringValue extends ValueBase {
-    
+
     final public String value;
-    
+
     public StringValue(String value) {
         super("string");
         this.value = value;
@@ -27,7 +28,7 @@ public class StringValue extends ValueBase {
     public String output() {
         return value;
     }
-    
+
     @Override
     public String toString() {
         return inspect();
@@ -39,9 +40,7 @@ public class StringValue extends ValueBase {
             StringValue o = (StringValue) other;
             return value.equals(o.value);
         }
-        else {
-            return super.equal(other);
-        }
+        return super.equal(other);
     }
 
     @Override
@@ -50,9 +49,7 @@ public class StringValue extends ValueBase {
             StringValue o = (StringValue) other;
             return new StringValue(this.value + o.value);
         }
-        else {
-            return super.add(other);
-        }
+        return super.add(other);
     }
 
     @Override

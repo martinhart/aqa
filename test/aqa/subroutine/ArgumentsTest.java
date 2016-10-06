@@ -3,6 +3,7 @@
  */
 package aqa.subroutine;
 
+import aqa.InterpreterException;
 import aqa.value.ValueBase;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -34,14 +35,14 @@ public class ArgumentsTest {
     }
 
     @Test
-    public void getting1Item() throws ArgumentException {
+    public void getting1Item() throws InterpreterException {
         Argument a = new Argument(new StubValue());
         subject.add(a);
         assertEquals(a, subject.get(0));
     }
     
     @Test
-    public void gettingMultipleItems() throws ArgumentException {
+    public void gettingMultipleItems() throws InterpreterException {
         Argument a1 = new Argument(new StubValue());
         Argument a2 = new Argument(new StubValue());
         subject.add(a1);
@@ -50,8 +51,8 @@ public class ArgumentsTest {
         assertEquals(a2, subject.get(1));
     }
     
-    @Test(expected=ArgumentException.class)
-    public void gettingInvalidIndex() throws ArgumentException {
+    @Test(expected=InterpreterException.class)
+    public void gettingInvalidIndex() throws InterpreterException {
         subject.get(0);
     }
 

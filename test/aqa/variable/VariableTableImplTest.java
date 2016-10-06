@@ -14,13 +14,13 @@ import org.junit.Before;
  *
  * @author martinhart
  */
-public class VariablesImplTest {
+public class VariableTableImplTest {
 
-    private VariablesImpl subject;
+    private VariableTableImpl subject;
 
     @Before
     public void setUp() {
-        subject = new VariablesImpl();
+        subject = new VariableTableImpl();
     }
 
     @Test

@@ -4,7 +4,7 @@
 package aqa.value;
 
 /**
- *
+ * A representation of nothing.
  * @author martinhart
  */
 public class NullValue extends ValueBase {

@@ -11,22 +11,22 @@ import static org.junit.Assert.*;
  *
  * @author martinhart
  */
-public class InstructionListenerTest {
+public class IgnoreInstructionListenerTest {
     
     @Test
     public void testNewInstruction() throws InterpreterException {
-        new InstructionListener().newInstruction(10, null);
+        new IgnoreInstructionListener().newInstruction(10, null);
     }
     
     @Test
     public void testOverrideOfNewInstruction() throws InterpreterException {
         InstructionListenerStub s = new InstructionListenerStub();
-        InstructionListener base = s;
+        IgnoreInstructionListener base = s;
         base.newInstruction(100, null);
         assertEquals(100, s.lineNumber);
     }
     
-    private class InstructionListenerStub extends InstructionListener {
+    private class InstructionListenerStub extends IgnoreInstructionListener {
         public int lineNumber;
         @Override
         public void newInstruction(int line, VirtualMachine vm) {

@@ -4,15 +4,21 @@
 package aqa.parser;
 
 /**
- * This interface is triggered by the Interpreter when stuff should be
- * outputted.
- *
+ * An interface used to provide output while the program is running.
+ * When the parser encounters a statement such as:
+ * 
+ *      OUTPUT 'Hello'
+ *      or
+ *      INSPECT a+b
+ * 
+ * The output writer is used to send the result to a UI component.
+ * 
  * @author martinhart
  */
 public interface OutputWriter {
 
     /**
-     * Implement this method to send some output to the display.
+     * Implement this method to send some output to the display/console/file/whatever.
      *
      * @param message information to be outputted.
      */

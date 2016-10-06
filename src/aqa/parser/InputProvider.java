@@ -4,7 +4,13 @@
 package aqa.parser;
 
 /**
- *
+ * An interface used to provide user input while the program is running.
+ * When the parser encounters a statement such as:
+ * 
+ *      a <- USERINPUT
+ * 
+ * The input provider is used to obtain some actual input from the user to store
+ * in the variable a.
  * @author martinhart
  */
 public interface InputProvider {

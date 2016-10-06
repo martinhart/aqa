@@ -7,20 +7,28 @@ import aqa.InterpreterException;
 import java.util.ArrayList;
 
 /**
- *
+ * This class represents an array.
+ * 
  * @author martinhart
  */
 public class ArrayValue extends ValueBase {
-    
-    //private final HashMap<Integer, Value> values;
+
+    /**
+     * The values contained inside this array
+     */
     private final ArrayList<Value> values;
     
     public ArrayValue() {
         super("array");
-        //values = new HashMap<>();
         values = new ArrayList<>();
     }
     
+    /**
+     * AQA do not define what should happen with OUTPUT ary so I've chosen the
+     * Ruby style - to just print the values one after the other.
+     * @return the output data
+     * @throws InterpreterException This override should not throw an exception.
+     */
     @Override
     public String output() throws InterpreterException {
         String s = "";
@@ -30,6 +38,11 @@ public class ArrayValue extends ValueBase {
         return s;
     }
     
+    /**
+     * AQA do not include INSPECT in the language.  It's added to aid debugging.
+     * @return the output data
+     * @throws InterpreterException - should never happen
+     */
     @Override
     public String inspect() throws InterpreterException {
         String s = "[";

@@ -5,32 +5,69 @@ package aqa.parser;
 
 import aqa.InterpreterException;
 import aqa.subroutine.Subroutine;
-import aqa.subroutine.Subroutines;
-import aqa.subroutine.SubroutinesImpl;
+import aqa.subroutine.SubroutineTableImpl;
 import aqa.value.Value;
 import aqa.value.ValueStack;
 import aqa.value.ValueStackImpl;
 import aqa.variable.Variable;
-import aqa.variable.Variables;
-import aqa.variable.VariablesImpl;
+import aqa.variable.VariableTable;
+import aqa.variable.VariableTableImpl;
+import aqa.subroutine.SubroutineTable;
 
 /**
- * This class wraps up the state of a single virtual machine. It's used to keep
- * track of values, variables and subroutines definitions.
+ * When a program is being executed it will contain:
+ *
+ * * A variable table (mappings of variable names to values) * A value stack
+ * (progress of current instruction) * A subroutine table (mappings of
+ * subroutine names to code).
+ *
+ * This class wraps up the state of a single virtual machine. It's basically a
+ * delegator used to minimise the amount of stuff passed between the parser and
+ * its clients.
+ * 
+ * Each instance has its own value stack but can be passed variables and subroutines
+ * from another context.
  *
  * @author martinhart
  */
 public class VirtualMachine {
 
+    /**
+     * The value stack being used by the current context.
+     */
     private final ValueStack values;
-    private final Variables variables;
-    private final Subroutines subroutines;
 
     /**
-     * Create a brand new virtual machine with no context.
+     * The variables that are visible in the current context.
      */
-    public VirtualMachine() {
-        this(new SubroutinesImpl());
+    private final VariableTable variables;
+
+    /**
+     * The subroutines that are visible in the current context.
+     */
+    private final SubroutineTable subroutines;
+
+    /**
+     * Create a new virtual machine with full context.
+     * @param s the subroutines to use in this vm
+     * @param v the variables to use in this vm
+     * @param va the value stack to use inside this vm.
+     */
+    public VirtualMachine(SubroutineTable s, VariableTable v, ValueStack va) {
+        values = va;
+        variables = v;
+        subroutines = s;
+    }
+
+    /**
+     * Create a new virtual machine with subroutine and variables context (e.g.
+     * to execute a subroutine with arguments)
+     *
+     * @param s subroutines to use
+     * @param v variables to use
+     */
+    public VirtualMachine(SubroutineTable s, VariableTable v) {
+        this(s, v, new ValueStackImpl());
     }
 
     /**
@@ -39,25 +76,18 @@ public class VirtualMachine {
      *
      * @param s subroutines to use.
      */
-    public VirtualMachine(Subroutines s) {
-        this(s, new VariablesImpl());
+    public VirtualMachine(SubroutineTable s) {
+        this(s, new VariableTableImpl());
     }
 
     /**
-     * Create a new virtual machine with subroutine and variables context
-     *
-     * @param s subroutines to use
-     * @param v variables to use
+     * Create a brand new virtual machine with no context. (e.g. to execute a
+     * top level program).
      */
-    public VirtualMachine(Subroutines s, Variables v) {
-        this(s, v, new ValueStackImpl());
+    public VirtualMachine() {
+        this(new SubroutineTableImpl());
     }
-    
-    public VirtualMachine(Subroutines s, Variables v, ValueStack va) {
-        values = va;
-        variables = v;
-        subroutines = s;
-    }
+
 
     /**
      * Retrieve the value stack being used by this VM
@@ -68,14 +98,28 @@ public class VirtualMachine {
         return values;
     }
 
+    /**
+     * Add a value to the value stack
+     * @param v the value to add
+     */
     public void pushValue(Value v) {
         values.push(v);
     }
 
+    /**
+     * Pop the top value from the value stack
+     * @return the value
+     * @throws InterpreterException if stack is empty
+     */
     public Value popValue() throws InterpreterException {
         return values.pop();
     }
 
+    /**
+     * Peek at the top value on the value stack
+     * @return the value
+     * @throws InterpreterException if stack is empty
+     */
     public Value peekValue() throws InterpreterException {
         return values.peek();
     }
@@ -83,60 +127,59 @@ public class VirtualMachine {
     /**
      * Retrieve the variable table being used by this VM
      *
-     * @return
+     * @return var table
      */
-    public Variables getVariables() {
+    public VariableTable getVariables() {
         return variables;
     }
 
     /**
      * Retrieve the subroutine table being used by this VM
      *
-     * @return
+     * @return subroutine table
      */
-    public Subroutines getSubroutines() {
+    public SubroutineTable getSubroutineTable() {
         return subroutines;
     }
 
     /**
-     * Add a variable to this VM. Defers to Variables
+     * Add a variable to this VM.
      *
-     * @param v
-     * @throws aqa.InterpreterException
+     * @param v the variable to add
+     * @throws aqa.InterpreterException if variable already exists
      */
     public void addVariable(Variable v) throws InterpreterException {
         variables.set(v);
     }
 
     /**
-     * Retrieve a variable from this VM. Defers to Variables
+     * Retrieve a variable from this VM.
      *
      * @param name name of variable
-     * @return
+     * @return the variable
      */
     public Variable getVariable(String name) {
         return variables.get(name);
     }
 
     /**
-     * Add a subroutine to this VM. Defers to Subroutines
+     * Add a subroutine to this VM.
      *
-     * @param s
-     * @throws aqa.InterpreterException
+     * @param s the subroutine to add
+     * @throws aqa.InterpreterException if subroutine already exists
      */
     public void addSubroutine(Subroutine s) throws InterpreterException {
         subroutines.add(s);
     }
 
     /**
-     * Retrieve a subroutine from this VM. Defers to Subroutines
+     * Retrieve a subroutine from this VM.
      *
      * @param name name of subroutine
-     * @return
-     * @throws InterpreterException
+     * @return the subroutine
+     * @throws InterpreterException if there isn't one with given name
      */
     public Subroutine getSubroutine(String name) throws InterpreterException {
         return subroutines.get(name);
     }
-
 }

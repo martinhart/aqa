@@ -9,13 +9,14 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- *
+ * Application entry point.
+ * This class initialises the UI and then creates and displays the main window.
  * @author martinhart
  */
 public class AQAPseudocodeInterpreter {
 
     /**
-     * @param args the command line arguments
+     * @param args the command line arguments (which are ignored!)
      */
     public static void main(String[] args) {
         try {

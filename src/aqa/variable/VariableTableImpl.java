@@ -9,14 +9,19 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- *
+ * This class provides a concrete implementation of the VariableTable interface
+ * for use with the virtual machine.
+ * 
  * @author martinhart
  */
-public class VariablesImpl extends Variables {
+public class VariableTableImpl extends VariableTable {
 
+    /**
+     * The variables being stored.
+     */
     private final HashMap<String, Variable> variables;
 
-    public VariablesImpl() {
+    public VariableTableImpl() {
         variables = new HashMap<>();
     }
 

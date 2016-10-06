@@ -14,26 +14,66 @@ import aqa.value.StringValue;
 import aqa.value.Value;
 import aqa.value.ValueFactory;
 import aqa.variable.Variable;
-import aqa.variable.Variables;
-import aqa.variable.VariablesImpl;
+import aqa.variable.VariableTable;
+import aqa.variable.VariableTableImpl;
 import java.util.Random;
 
 /**
- *
+ * This class contains the implementation of a recursive descent parser for
+ * the AQA Pseudocode Language.
+ * 
+ * In order to run the parser you need to:
+ * 1. Construct an instance with the necessary callback objects.
+ * 2. Add some tokens to parse.
+ * 3. Call parse.
+ * 
+ * TODO: refactoring - this class is too big.  Can we split into smaller parsers,
+ * each responsible for a BNF statement?
+ * 
+ * TODO: refactoring - why can't we just pass the tokens into the constructor?
+ * why are we adding separate tokens one at a time?
+ * 
  * @author martinhart
  */
 public class Parser {
     
-    private class ReturnException extends Exception {        
-    }
-
+    /**
+     * The object that will provide the user with output (OUTPUT and INSPECT)
+     */
     private final OutputWriter outputWriter;
+    
+    /**
+     * The object that will provide the parser with user input during
+     * execution (USERINPUT)
+     */
     private final InputProvider inputProvider;
+    
+    /**
+     * The object to notify when we move on to a new instruction.
+     */
     private final InstructionListener instructionListener;
+    
+    /**
+     * The tokens to parse and execute
+     */
     Tokens tokens;
+    
+    /**
+     * A wrapper object to keep track of which token we're working on.
+     */
     private TokenSequencer tokenSequencer;
+    
+    /**
+     * The current virtual machine (variable table, value stack, subroutine table)
+     */
     private VirtualMachine vm;
-
+    
+    /**
+     * Create a new instance of the parser ready to go
+     * @param outputWriter where program output should go
+     * @param inputProvider where user input should come from
+     * @param instructionListener who to notify about current state
+     */
     public Parser(OutputWriter outputWriter, InputProvider inputProvider,
             InstructionListener instructionListener) {
         this.outputWriter = outputWriter;
@@ -43,18 +83,44 @@ public class Parser {
         vm = new VirtualMachine();
     }
     
+    /**
+     * Create a new instance of the parser without notifying clients regarding
+     * current state
+     * @param outputWriter where program output should go
+     * @param inputProvider where user input should come from
+     */
     public Parser(OutputWriter outputWriter, InputProvider inputProvider) {
-        this(outputWriter, inputProvider, new InstructionListener());
+        this(outputWriter, inputProvider, new IgnoreInstructionListener());
     }
     
+    /**
+     * Create a new instance of the parser that does not have the capability
+     * of providing output to the user or reading input from the user.  It is
+     * able to notify about current state.
+     * 
+     * It is unwise to construct this way in production unless your program does
+     * not need any user interaction.  It is useful for testing.
+     * 
+     * @param instructionListener  who to notify about current state
+     */
     public Parser(InstructionListener instructionListener) {
         this(new NullOutputWriter(), new NullInputProvider(), instructionListener);
     }
 
+    /**
+     * Create a new instance of the parser that does not interact in any way
+     * with the outside world.
+     * 
+     * It is unwise to use this constructor unless you are testing the parser.
+     */
     public Parser() {
         this(new NullOutputWriter(), new NullInputProvider());
     }
     
+    /**
+     * Get the current virtual machine state of this parser.
+     * @return the vm
+     */
     public VirtualMachine getVM() {
         return vm;
     }
@@ -83,6 +149,12 @@ public class Parser {
         tokens.append(t);
     }
 
+    /**
+     * The outer block is the main program.  It is inside an outer block that
+     * SUBROUTINE can be defined so we catch them here.
+     * 
+     * @throws InterpreterException
+     */
     private void outerBlock() throws InterpreterException {
         while (tokenSequencer.thereIsAToken()) {
             if (tokenSequencer.match("SUBROUTINE")) {
@@ -93,6 +165,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Handle a subroutine definition.
+     * 
+     * @throws InterpreterException 
+     */
     private void subroutine() throws InterpreterException {
         Subroutine s;
 
@@ -120,7 +197,7 @@ public class Parser {
         Subroutine s = vm.getSubroutine(tokenSequencer.getCurrentTokenName());
         VirtualMachine currentVM = vm;
         TokenSequencer currentTokenSequencer = tokenSequencer;
-        Variables subroutineVariables = new VariablesImpl();
+        VariableTable subroutineVariables = new VariableTableImpl();
         int paramIndex = 0;
         
         tokenSequencer.advance();
@@ -137,7 +214,7 @@ public class Parser {
         }
         tokenSequencer.expect(")");
         
-        this.vm = new VirtualMachine(vm.getSubroutines(), subroutineVariables);
+        this.vm = new VirtualMachine(vm.getSubroutineTable(), subroutineVariables);
         this.tokenSequencer = new TokenSequencer(s.getTokens());
         block();
         try {

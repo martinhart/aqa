@@ -7,10 +7,12 @@ import aqa.InterpreterException;
 import java.util.List;
 
 /**
- *
+ * This interface defines the responsibilities of a variable table.  The VM
+ * uses a variable table to maintain its current context.
+ * 
  * @author martinhart
  */
-public abstract class Variables {
+public abstract class VariableTable {
     
     /**
      * Store variable in var table.
@@ -30,12 +32,12 @@ public abstract class Variables {
     public abstract Variable get(String name);   
     
     /**
-     * Return the number of variables in the set.
+     * @return the number of variables in the set.
      */
     public abstract int size();
     
     /**
-     * Return the variable names
+     * @return a list of variable names in this table
      */
     public abstract List<String> getNames();
 }

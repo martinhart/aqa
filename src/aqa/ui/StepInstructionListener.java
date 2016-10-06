@@ -4,7 +4,7 @@
 package aqa.ui;
 
 import aqa.InterpreterException;
-import aqa.parser.InstructionListener;
+import aqa.parser.IgnoreInstructionListener;
 import aqa.parser.VirtualMachine;
 
 /**
@@ -13,7 +13,7 @@ import aqa.parser.VirtualMachine;
  * thread until released by a flag (triggered from UI menu).
  * @author martinhart
  */
-public class StepInstructionListener extends InstructionListener {
+public class StepInstructionListener extends IgnoreInstructionListener {
     
     private InterpreterWorker worker;
     private final StepLock lock;
