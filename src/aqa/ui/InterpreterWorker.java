@@ -10,6 +10,7 @@ import aqa.parser.IgnoreInstructionListener;
 import aqa.parser.OutputWriter;
 import aqa.parser.VirtualMachine;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -82,7 +83,7 @@ class BlockingInputProvider implements InputProvider {
                     input = "";
                 }
             });
-        } catch (Exception e) {
+        } catch (InterruptedException | InvocationTargetException e) {
             //TODO: how does user ever know about this exception?
             input = "";
         }
