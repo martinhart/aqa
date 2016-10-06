@@ -67,6 +67,8 @@ public class Tokenizer {
      * Run through the source code and create some tokens from it
      * @return the created tokens
      * @throws InterpreterException if there are problems tokenizing the input data.
+     * 
+     * TODO: this method is too long and is difficult to read.  Break it down.
      */
     public Tokens tokenize() throws InterpreterException {
 

@@ -8,8 +8,6 @@ import aqa.parser.OutputWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.StringReader;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
