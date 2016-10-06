@@ -1,0 +1,10 @@
+# A simple program to show subroutines in action
+
+SUBROUTINE add(a, b)
+	RETURN a + b
+ENDSUBROUTINE
+
+OUTPUT add(1, 2)
+OUTPUT add(3, 4)
+OUTPUT add('Hello ', 'world!')
+

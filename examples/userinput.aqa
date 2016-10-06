@@ -1,0 +1,6 @@
+# A sample program to show how to interact with the user.
+
+message <- 'Hello '
+name <- USERINPUT
+OUTPUT message + name + '!'
+
